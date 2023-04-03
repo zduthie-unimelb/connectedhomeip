@@ -1,0 +1,286 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - lcov_final.info - protocols/secure_channel/PairingSession.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">protocols/secure_channel</a> - PairingSession.cpp<span style="font-size: 80%;"> (source / <a href="PairingSession.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">lcov_final.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">83</td>
+            <td class="headerCovTableEntry">87</td>
+            <td class="headerCovTableEntryHi">95.4 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2023-03-28 18:24:35</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">11</td>
+            <td class="headerCovTableEntry">11</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /*</a>
+<a name="2"><span class="lineNum">       2 </span>            :  *</a>
+<a name="3"><span class="lineNum">       3 </span>            :  *    Copyright (c) 2021 Project CHIP Authors</a>
+<a name="4"><span class="lineNum">       4 </span>            :  *    All rights reserved.</a>
+<a name="5"><span class="lineNum">       5 </span>            :  *</a>
+<a name="6"><span class="lineNum">       6 </span>            :  *    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</a>
+<a name="7"><span class="lineNum">       7 </span>            :  *    you may not use this file except in compliance with the License.</a>
+<a name="8"><span class="lineNum">       8 </span>            :  *    You may obtain a copy of the License at</a>
+<a name="9"><span class="lineNum">       9 </span>            :  *</a>
+<a name="10"><span class="lineNum">      10 </span>            :  *        http://www.apache.org/licenses/LICENSE-2.0</a>
+<a name="11"><span class="lineNum">      11 </span>            :  *</a>
+<a name="12"><span class="lineNum">      12 </span>            :  *    Unless required by applicable law or agreed to in writing, software</a>
+<a name="13"><span class="lineNum">      13 </span>            :  *    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</a>
+<a name="14"><span class="lineNum">      14 </span>            :  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</a>
+<a name="15"><span class="lineNum">      15 </span>            :  *    See the License for the specific language governing permissions and</a>
+<a name="16"><span class="lineNum">      16 </span>            :  *    limitations under the License.</a>
+<a name="17"><span class="lineNum">      17 </span>            :  */</a>
+<a name="18"><span class="lineNum">      18 </span>            : </a>
+<a name="19"><span class="lineNum">      19 </span>            : #include &lt;protocols/secure_channel/PairingSession.h&gt;</a>
+<a name="20"><span class="lineNum">      20 </span>            : </a>
+<a name="21"><span class="lineNum">      21 </span>            : #include &lt;lib/core/CHIPTLVTypes.h&gt;</a>
+<a name="22"><span class="lineNum">      22 </span>            : #include &lt;lib/support/SafeInt.h&gt;</a>
+<a name="23"><span class="lineNum">      23 </span>            : </a>
+<a name="24"><span class="lineNum">      24 </span>            : namespace chip {</a>
+<a name="25"><span class="lineNum">      25 </span>            : </a>
+<a name="26"><span class="lineNum">      26 </span><span class="lineCov">         47 : CHIP_ERROR PairingSession::AllocateSecureSession(SessionManager &amp; sessionManager, const ScopedNodeId &amp; sessionEvictionHint)</span></a>
+<a name="27"><span class="lineNum">      27 </span>            : {</a>
+<a name="28"><span class="lineNum">      28 </span><span class="lineCov">         47 :     auto handle = sessionManager.AllocateSession(GetSecureSessionType(), sessionEvictionHint);</span></a>
+<a name="29"><span class="lineNum">      29 </span><span class="lineCov">         47 :     VerifyOrReturnError(handle.HasValue(), CHIP_ERROR_NO_MEMORY);</span></a>
+<a name="30"><span class="lineNum">      30 </span><span class="lineCov">         47 :     VerifyOrReturnError(mSecureSessionHolder.GrabPairingSession(handle.Value()), CHIP_ERROR_INTERNAL);</span></a>
+<a name="31"><span class="lineNum">      31 </span><span class="lineCov">         47 :     mSessionManager = &amp;sessionManager;</span></a>
+<a name="32"><span class="lineNum">      32 </span><span class="lineCov">         47 :     return CHIP_NO_ERROR;</span></a>
+<a name="33"><span class="lineNum">      33 </span><span class="lineCov">         47 : }</span></a>
+<a name="34"><span class="lineNum">      34 </span>            : </a>
+<a name="35"><span class="lineNum">      35 </span><span class="lineCov">         24 : CHIP_ERROR PairingSession::ActivateSecureSession(const Transport::PeerAddress &amp; peerAddress)</span></a>
+<a name="36"><span class="lineNum">      36 </span>            : {</a>
+<a name="37"><span class="lineNum">      37 </span>            :     // Prepare SecureSession fields, including key derivation, first, before activation</a>
+<a name="38"><span class="lineNum">      38 </span><span class="lineCov">         24 :     Transport::SecureSession * secureSession = mSecureSessionHolder-&gt;AsSecureSession();</span></a>
+<a name="39"><span class="lineNum">      39 </span><span class="lineCov">         24 :     ReturnErrorOnFailure(DeriveSecureSession(secureSession-&gt;GetCryptoContext()));</span></a>
+<a name="40"><span class="lineNum">      40 </span>            : </a>
+<a name="41"><span class="lineNum">      41 </span><span class="lineCov">         24 :     uint16_t peerSessionId = GetPeerSessionId();</span></a>
+<a name="42"><span class="lineNum">      42 </span><span class="lineCov">         24 :     secureSession-&gt;SetPeerAddress(peerAddress);</span></a>
+<a name="43"><span class="lineNum">      43 </span><span class="lineCov">         24 :     secureSession-&gt;GetSessionMessageCounter().GetPeerMessageCounter().SetCounter(Transport::PeerMessageCounter::kInitialSyncValue);</span></a>
+<a name="44"><span class="lineNum">      44 </span>            : </a>
+<a name="45"><span class="lineNum">      45 </span>            :     // Call Activate last, otherwise errors on anything after would lead to</a>
+<a name="46"><span class="lineNum">      46 </span>            :     // a partially valid session.</a>
+<a name="47"><span class="lineNum">      47 </span><span class="lineCov">         24 :     secureSession-&gt;Activate(GetLocalScopedNodeId(), GetPeer(), GetPeerCATs(), peerSessionId, mRemoteMRPConfig);</span></a>
+<a name="48"><span class="lineNum">      48 </span>            : </a>
+<a name="49"><span class="lineNum">      49 </span><span class="lineCov">         24 :     ChipLogDetail(Inet, &quot;New secure session activated for device &quot; ChipLogFormatScopedNodeId &quot;, LSID:%d PSID:%d!&quot;,</span></a>
+<a name="50"><span class="lineNum">      50 </span>            :                   ChipLogValueScopedNodeId(GetPeer()), secureSession-&gt;GetLocalSessionId(), peerSessionId);</a>
+<a name="51"><span class="lineNum">      51 </span>            : </a>
+<a name="52"><span class="lineNum">      52 </span><span class="lineCov">         24 :     return CHIP_NO_ERROR;</span></a>
+<a name="53"><span class="lineNum">      53 </span>            : }</a>
+<a name="54"><span class="lineNum">      54 </span>            : </a>
+<a name="55"><span class="lineNum">      55 </span><span class="lineCov">         24 : void PairingSession::Finish()</span></a>
+<a name="56"><span class="lineNum">      56 </span>            : {</a>
+<a name="57"><span class="lineNum">      57 </span><span class="lineCov">         24 :     Transport::PeerAddress address = mExchangeCtxt-&gt;GetSessionHandle()-&gt;AsUnauthenticatedSession()-&gt;GetPeerAddress();</span></a>
+<a name="58"><span class="lineNum">      58 </span>            : </a>
+<a name="59"><span class="lineNum">      59 </span>            :     // Discard the exchange so that Clear() doesn't try closing it. The exchange will handle that.</a>
+<a name="60"><span class="lineNum">      60 </span><span class="lineCov">         24 :     DiscardExchange();</span></a>
+<a name="61"><span class="lineNum">      61 </span>            : </a>
+<a name="62"><span class="lineNum">      62 </span><span class="lineCov">         24 :     CHIP_ERROR err = ActivateSecureSession(address);</span></a>
+<a name="63"><span class="lineNum">      63 </span><span class="lineCov">         24 :     if (err == CHIP_NO_ERROR)</span></a>
+<a name="64"><span class="lineNum">      64 </span>            :     {</a>
+<a name="65"><span class="lineNum">      65 </span><span class="lineCov">         24 :         VerifyOrDie(mSecureSessionHolder);</span></a>
+<a name="66"><span class="lineNum">      66 </span>            :         // Make sure to null out mDelegate so we don't send it any other</a>
+<a name="67"><span class="lineNum">      67 </span>            :         // notifications.</a>
+<a name="68"><span class="lineNum">      68 </span><span class="lineCov">         24 :         auto * delegate = mDelegate;</span></a>
+<a name="69"><span class="lineNum">      69 </span><span class="lineCov">         24 :         mDelegate       = nullptr;</span></a>
+<a name="70"><span class="lineNum">      70 </span><span class="lineCov">         24 :         delegate-&gt;OnSessionEstablished(mSecureSessionHolder.Get().Value());</span></a>
+<a name="71"><span class="lineNum">      71 </span>            :     }</a>
+<a name="72"><span class="lineNum">      72 </span>            :     else</a>
+<a name="73"><span class="lineNum">      73 </span>            :     {</a>
+<a name="74"><span class="lineNum">      74 </span><span class="lineNoCov">          0 :         NotifySessionEstablishmentError(err);</span></a>
+<a name="75"><span class="lineNum">      75 </span>            :     }</a>
+<a name="76"><span class="lineNum">      76 </span><span class="lineCov">         24 : }</span></a>
+<a name="77"><span class="lineNum">      77 </span>            : </a>
+<a name="78"><span class="lineNum">      78 </span><span class="lineCov">         26 : void PairingSession::DiscardExchange()</span></a>
+<a name="79"><span class="lineNum">      79 </span>            : {</a>
+<a name="80"><span class="lineNum">      80 </span><span class="lineCov">         26 :     if (mExchangeCtxt != nullptr)</span></a>
+<a name="81"><span class="lineNum">      81 </span>            :     {</a>
+<a name="82"><span class="lineNum">      82 </span>            :         // Make sure the exchange doesn't try to notify us when it closes,</a>
+<a name="83"><span class="lineNum">      83 </span>            :         // since we might be dead by then.</a>
+<a name="84"><span class="lineNum">      84 </span><span class="lineCov">         26 :         mExchangeCtxt-&gt;SetDelegate(nullptr);</span></a>
+<a name="85"><span class="lineNum">      85 </span>            :         // Null out mExchangeCtxt so that Clear() doesn't try closing it.  The</a>
+<a name="86"><span class="lineNum">      86 </span>            :         // exchange will handle that.</a>
+<a name="87"><span class="lineNum">      87 </span><span class="lineCov">         26 :         mExchangeCtxt = nullptr;</span></a>
+<a name="88"><span class="lineNum">      88 </span>            :     }</a>
+<a name="89"><span class="lineNum">      89 </span><span class="lineCov">         26 : }</span></a>
+<a name="90"><span class="lineNum">      90 </span>            : </a>
+<a name="91"><span class="lineNum">      91 </span><span class="lineCov">          7 : CHIP_ERROR PairingSession::EncodeMRPParameters(TLV::Tag tag, const ReliableMessageProtocolConfig &amp; mrpLocalConfig,</span></a>
+<a name="92"><span class="lineNum">      92 </span>            :                                                TLV::TLVWriter &amp; tlvWriter)</a>
+<a name="93"><span class="lineNum">      93 </span>            : {</a>
+<a name="94"><span class="lineNum">      94 </span>            :     TLV::TLVType mrpParamsContainer;</a>
+<a name="95"><span class="lineNum">      95 </span><span class="lineCov">          7 :     ReturnErrorOnFailure(tlvWriter.StartContainer(tag, TLV::kTLVType_Structure, mrpParamsContainer));</span></a>
+<a name="96"><span class="lineNum">      96 </span><span class="lineCov">          7 :     ReturnErrorOnFailure(tlvWriter.Put(TLV::ContextTag(1), mrpLocalConfig.mIdleRetransTimeout.count()));</span></a>
+<a name="97"><span class="lineNum">      97 </span><span class="lineCov">          7 :     ReturnErrorOnFailure(tlvWriter.Put(TLV::ContextTag(2), mrpLocalConfig.mActiveRetransTimeout.count()));</span></a>
+<a name="98"><span class="lineNum">      98 </span><span class="lineCov">          7 :     return tlvWriter.EndContainer(mrpParamsContainer);</span></a>
+<a name="99"><span class="lineNum">      99 </span>            : }</a>
+<a name="100"><span class="lineNum">     100 </span>            : </a>
+<a name="101"><span class="lineNum">     101 </span><span class="lineCov">          8 : CHIP_ERROR PairingSession::DecodeMRPParametersIfPresent(TLV::Tag expectedTag, TLV::ContiguousBufferTLVReader &amp; tlvReader)</span></a>
+<a name="102"><span class="lineNum">     102 </span>            : {</a>
+<a name="103"><span class="lineNum">     103 </span>            :     // The MRP parameters are optional.</a>
+<a name="104"><span class="lineNum">     104 </span><span class="lineCov">          8 :     if (tlvReader.GetTag() != expectedTag)</span></a>
+<a name="105"><span class="lineNum">     105 </span>            :     {</a>
+<a name="106"><span class="lineNum">     106 </span><span class="lineCov">          1 :         return CHIP_NO_ERROR;</span></a>
+<a name="107"><span class="lineNum">     107 </span>            :     }</a>
+<a name="108"><span class="lineNum">     108 </span>            : </a>
+<a name="109"><span class="lineNum">     109 </span><span class="lineCov">          7 :     TLV::TLVType containerType = TLV::kTLVType_Structure;</span></a>
+<a name="110"><span class="lineNum">     110 </span><span class="lineCov">          7 :     ReturnErrorOnFailure(tlvReader.EnterContainer(containerType));</span></a>
+<a name="111"><span class="lineNum">     111 </span>            : </a>
+<a name="112"><span class="lineNum">     112 </span><span class="lineCov">          7 :     uint32_t tlvElementValue = 0;</span></a>
+<a name="113"><span class="lineNum">     113 </span>            : </a>
+<a name="114"><span class="lineNum">     114 </span><span class="lineCov">          7 :     ReturnErrorOnFailure(tlvReader.Next());</span></a>
+<a name="115"><span class="lineNum">     115 </span>            : </a>
+<a name="116"><span class="lineNum">     116 </span><span class="lineCov">          7 :     ChipLogDetail(SecureChannel, &quot;Found MRP parameters in the message&quot;);</span></a>
+<a name="117"><span class="lineNum">     117 </span>            : </a>
+<a name="118"><span class="lineNum">     118 </span>            :     // Both TLV elements in the structure are optional. If the first element is present, process it and move</a>
+<a name="119"><span class="lineNum">     119 </span>            :     // the TLV reader to the next element.</a>
+<a name="120"><span class="lineNum">     120 </span><span class="lineCov">          7 :     if (TLV::TagNumFromTag(tlvReader.GetTag()) == 1)</span></a>
+<a name="121"><span class="lineNum">     121 </span>            :     {</a>
+<a name="122"><span class="lineNum">     122 </span><span class="lineCov">          7 :         ReturnErrorOnFailure(tlvReader.Get(tlvElementValue));</span></a>
+<a name="123"><span class="lineNum">     123 </span><span class="lineCov">          7 :         mRemoteMRPConfig.mIdleRetransTimeout = System::Clock::Milliseconds32(tlvElementValue);</span></a>
+<a name="124"><span class="lineNum">     124 </span>            : </a>
+<a name="125"><span class="lineNum">     125 </span>            :         // The next element is optional. If it's not present, return CHIP_NO_ERROR.</a>
+<a name="126"><span class="lineNum">     126 </span><span class="lineCov">          7 :         CHIP_ERROR err = tlvReader.Next();</span></a>
+<a name="127"><span class="lineNum">     127 </span><span class="lineCov">          7 :         if (err == CHIP_END_OF_TLV)</span></a>
+<a name="128"><span class="lineNum">     128 </span>            :         {</a>
+<a name="129"><span class="lineNum">     129 </span><span class="lineNoCov">          0 :             return tlvReader.ExitContainer(containerType);</span></a>
+<a name="130"><span class="lineNum">     130 </span>            :         }</a>
+<a name="131"><span class="lineNum">     131 </span><span class="lineCov">          7 :         ReturnErrorOnFailure(err);</span></a>
+<a name="132"><span class="lineNum">     132 </span>            :     }</a>
+<a name="133"><span class="lineNum">     133 </span>            : </a>
+<a name="134"><span class="lineNum">     134 </span><span class="lineCov">          7 :     VerifyOrReturnError(TLV::TagNumFromTag(tlvReader.GetTag()) == 2, CHIP_ERROR_INVALID_TLV_TAG);</span></a>
+<a name="135"><span class="lineNum">     135 </span><span class="lineCov">          7 :     ReturnErrorOnFailure(tlvReader.Get(tlvElementValue));</span></a>
+<a name="136"><span class="lineNum">     136 </span><span class="lineCov">          7 :     mRemoteMRPConfig.mActiveRetransTimeout = System::Clock::Milliseconds32(tlvElementValue);</span></a>
+<a name="137"><span class="lineNum">     137 </span>            : </a>
+<a name="138"><span class="lineNum">     138 </span><span class="lineCov">          7 :     return tlvReader.ExitContainer(containerType);</span></a>
+<a name="139"><span class="lineNum">     139 </span>            : }</a>
+<a name="140"><span class="lineNum">     140 </span>            : </a>
+<a name="141"><span class="lineNum">     141 </span><span class="lineCov">          4 : bool PairingSession::IsSessionEstablishmentInProgress()</span></a>
+<a name="142"><span class="lineNum">     142 </span>            : {</a>
+<a name="143"><span class="lineNum">     143 </span><span class="lineCov">          4 :     if (!mSecureSessionHolder)</span></a>
+<a name="144"><span class="lineNum">     144 </span>            :     {</a>
+<a name="145"><span class="lineNum">     145 </span><span class="lineNoCov">          0 :         return false;</span></a>
+<a name="146"><span class="lineNum">     146 </span>            :     }</a>
+<a name="147"><span class="lineNum">     147 </span>            : </a>
+<a name="148"><span class="lineNum">     148 </span><span class="lineCov">          4 :     Transport::SecureSession * secureSession = mSecureSessionHolder-&gt;AsSecureSession();</span></a>
+<a name="149"><span class="lineNum">     149 </span><span class="lineCov">          4 :     return secureSession-&gt;IsEstablishing();</span></a>
+<a name="150"><span class="lineNum">     150 </span>            : }</a>
+<a name="151"><span class="lineNum">     151 </span>            : </a>
+<a name="152"><span class="lineNum">     152 </span><span class="lineCov">        192 : void PairingSession::Clear()</span></a>
+<a name="153"><span class="lineNum">     153 </span>            : {</a>
+<a name="154"><span class="lineNum">     154 </span>            :     // Clear acts like the destructor if PairingSession, if it is call during</a>
+<a name="155"><span class="lineNum">     155 </span>            :     // middle of a pairing, means we should terminate the exchange. For normal</a>
+<a name="156"><span class="lineNum">     156 </span>            :     // path, the exchange should already be discarded before calling Clear.</a>
+<a name="157"><span class="lineNum">     157 </span><span class="lineCov">        192 :     if (mExchangeCtxt != nullptr)</span></a>
+<a name="158"><span class="lineNum">     158 </span>            :     {</a>
+<a name="159"><span class="lineNum">     159 </span>            :         // The only time we reach this is if we are getting destroyed in the</a>
+<a name="160"><span class="lineNum">     160 </span>            :         // middle of our handshake.  In that case, there is no point trying to</a>
+<a name="161"><span class="lineNum">     161 </span>            :         // do MRP resends of the last message we sent, so abort the exchange</a>
+<a name="162"><span class="lineNum">     162 </span>            :         // instead of just closing it.</a>
+<a name="163"><span class="lineNum">     163 </span><span class="lineCov">          6 :         mExchangeCtxt-&gt;Abort();</span></a>
+<a name="164"><span class="lineNum">     164 </span><span class="lineCov">          6 :         mExchangeCtxt = nullptr;</span></a>
+<a name="165"><span class="lineNum">     165 </span>            :     }</a>
+<a name="166"><span class="lineNum">     166 </span>            : </a>
+<a name="167"><span class="lineNum">     167 </span><span class="lineCov">        192 :     mSecureSessionHolder.Release();</span></a>
+<a name="168"><span class="lineNum">     168 </span><span class="lineCov">        192 :     mPeerSessionId.ClearValue();</span></a>
+<a name="169"><span class="lineNum">     169 </span><span class="lineCov">        192 :     mSessionManager = nullptr;</span></a>
+<a name="170"><span class="lineNum">     170 </span><span class="lineCov">        192 : }</span></a>
+<a name="171"><span class="lineNum">     171 </span>            : </a>
+<a name="172"><span class="lineNum">     172 </span><span class="lineCov">         14 : void PairingSession::NotifySessionEstablishmentError(CHIP_ERROR error)</span></a>
+<a name="173"><span class="lineNum">     173 </span>            : {</a>
+<a name="174"><span class="lineNum">     174 </span><span class="lineCov">         14 :     if (mDelegate == nullptr)</span></a>
+<a name="175"><span class="lineNum">     175 </span>            :     {</a>
+<a name="176"><span class="lineNum">     176 </span>            :         // Already notified success or error.</a>
+<a name="177"><span class="lineNum">     177 </span><span class="lineCov">         10 :         return;</span></a>
+<a name="178"><span class="lineNum">     178 </span>            :     }</a>
+<a name="179"><span class="lineNum">     179 </span>            : </a>
+<a name="180"><span class="lineNum">     180 </span><span class="lineCov">          4 :     auto * delegate = mDelegate;</span></a>
+<a name="181"><span class="lineNum">     181 </span><span class="lineCov">          4 :     mDelegate       = nullptr;</span></a>
+<a name="182"><span class="lineNum">     182 </span><span class="lineCov">          4 :     delegate-&gt;OnSessionEstablishmentError(error);</span></a>
+<a name="183"><span class="lineNum">     183 </span>            : }</a>
+<a name="184"><span class="lineNum">     184 </span>            : </a>
+<a name="185"><span class="lineNum">     185 </span><span class="lineCov">         10 : void PairingSession::OnSessionReleased()</span></a>
+<a name="186"><span class="lineNum">     186 </span>            : {</a>
+<a name="187"><span class="lineNum">     187 </span><span class="lineCov">         10 :     if (mRole == CryptoContext::SessionRole::kInitiator)</span></a>
+<a name="188"><span class="lineNum">     188 </span>            :     {</a>
+<a name="189"><span class="lineNum">     189 </span><span class="lineCov">          5 :         NotifySessionEstablishmentError(CHIP_ERROR_CONNECTION_ABORTED);</span></a>
+<a name="190"><span class="lineNum">     190 </span><span class="lineCov">          5 :         return;</span></a>
+<a name="191"><span class="lineNum">     191 </span>            :     }</a>
+<a name="192"><span class="lineNum">     192 </span>            : </a>
+<a name="193"><span class="lineNum">     193 </span>            :     // Send the error notification async, because our delegate is likely to want</a>
+<a name="194"><span class="lineNum">     194 </span>            :     // to create a new session to listen for new connection attempts, and doing</a>
+<a name="195"><span class="lineNum">     195 </span>            :     // that under an OnSessionReleased notification is not safe.</a>
+<a name="196"><span class="lineNum">     196 </span><span class="lineCov">          5 :     if (!mSessionManager)</span></a>
+<a name="197"><span class="lineNum">     197 </span>            :     {</a>
+<a name="198"><span class="lineNum">     198 </span><span class="lineNoCov">          0 :         return;</span></a>
+<a name="199"><span class="lineNum">     199 </span>            :     }</a>
+<a name="200"><span class="lineNum">     200 </span>            : </a>
+<a name="201"><span class="lineNum">     201 </span><span class="lineCov">          5 :     mSessionManager-&gt;SystemLayer()-&gt;ScheduleWork(</span></a>
+<a name="202"><span class="lineNum">     202 </span><span class="lineCov">          5 :         [](auto * systemLayer, auto * appState) -&gt; void {</span></a>
+<a name="203"><span class="lineNum">     203 </span><span class="lineCov">          5 :             ChipLogError(Inet, &quot;ASYNC CASE Session establishment failed&quot;);</span></a>
+<a name="204"><span class="lineNum">     204 </span><span class="lineCov">          5 :             auto * _this = static_cast&lt;PairingSession *&gt;(appState);</span></a>
+<a name="205"><span class="lineNum">     205 </span><span class="lineCov">          5 :             _this-&gt;NotifySessionEstablishmentError(CHIP_ERROR_CONNECTION_ABORTED);</span></a>
+<a name="206"><span class="lineNum">     206 </span><span class="lineCov">          5 :         },</span></a>
+<a name="207"><span class="lineNum">     207 </span>            :         this);</a>
+<a name="208"><span class="lineNum">     208 </span>            : }</a>
+<a name="209"><span class="lineNum">     209 </span>            : </a>
+<a name="210"><span class="lineNum">     210 </span>            : } // namespace chip</a>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.14</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

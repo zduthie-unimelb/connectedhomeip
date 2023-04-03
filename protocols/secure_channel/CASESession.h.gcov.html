@@ -1,0 +1,369 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - lcov_final.info - protocols/secure_channel/CASESession.h</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">protocols/secure_channel</a> - CASESession.h<span style="font-size: 80%;"> (source / <a href="CASESession.h.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">lcov_final.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">13</td>
+            <td class="headerCovTableEntry">16</td>
+            <td class="headerCovTableEntryMed">81.2 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2023-03-28 18:24:35</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">9</td>
+            <td class="headerCovTableEntry">10</td>
+            <td class="headerCovTableEntryHi">90.0 %</td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /*</a>
+<a name="2"><span class="lineNum">       2 </span>            :  *</a>
+<a name="3"><span class="lineNum">       3 </span>            :  *    Copyright (c) 2021-2022 Project CHIP Authors</a>
+<a name="4"><span class="lineNum">       4 </span>            :  *    All rights reserved.</a>
+<a name="5"><span class="lineNum">       5 </span>            :  *</a>
+<a name="6"><span class="lineNum">       6 </span>            :  *    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</a>
+<a name="7"><span class="lineNum">       7 </span>            :  *    you may not use this file except in compliance with the License.</a>
+<a name="8"><span class="lineNum">       8 </span>            :  *    You may obtain a copy of the License at</a>
+<a name="9"><span class="lineNum">       9 </span>            :  *</a>
+<a name="10"><span class="lineNum">      10 </span>            :  *        http://www.apache.org/licenses/LICENSE-2.0</a>
+<a name="11"><span class="lineNum">      11 </span>            :  *</a>
+<a name="12"><span class="lineNum">      12 </span>            :  *    Unless required by applicable law or agreed to in writing, software</a>
+<a name="13"><span class="lineNum">      13 </span>            :  *    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</a>
+<a name="14"><span class="lineNum">      14 </span>            :  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</a>
+<a name="15"><span class="lineNum">      15 </span>            :  *    See the License for the specific language governing permissions and</a>
+<a name="16"><span class="lineNum">      16 </span>            :  *    limitations under the License.</a>
+<a name="17"><span class="lineNum">      17 </span>            :  */</a>
+<a name="18"><span class="lineNum">      18 </span>            : </a>
+<a name="19"><span class="lineNum">      19 </span>            : /**</a>
+<a name="20"><span class="lineNum">      20 </span>            :  *    @file</a>
+<a name="21"><span class="lineNum">      21 </span>            :  *      This file defines the CHIP CASE Session object that provides</a>
+<a name="22"><span class="lineNum">      22 </span>            :  *      APIs for constructing a secure session using a certificate from the device's</a>
+<a name="23"><span class="lineNum">      23 </span>            :  *      operational credentials.</a>
+<a name="24"><span class="lineNum">      24 </span>            :  */</a>
+<a name="25"><span class="lineNum">      25 </span>            : </a>
+<a name="26"><span class="lineNum">      26 </span>            : #pragma once</a>
+<a name="27"><span class="lineNum">      27 </span>            : </a>
+<a name="28"><span class="lineNum">      28 </span>            : #include &lt;credentials/CHIPCert.h&gt;</a>
+<a name="29"><span class="lineNum">      29 </span>            : #include &lt;credentials/CertificateValidityPolicy.h&gt;</a>
+<a name="30"><span class="lineNum">      30 </span>            : #include &lt;credentials/FabricTable.h&gt;</a>
+<a name="31"><span class="lineNum">      31 </span>            : #include &lt;credentials/GroupDataProvider.h&gt;</a>
+<a name="32"><span class="lineNum">      32 </span>            : #include &lt;crypto/CHIPCryptoPAL.h&gt;</a>
+<a name="33"><span class="lineNum">      33 </span>            : #include &lt;lib/core/CHIPTLV.h&gt;</a>
+<a name="34"><span class="lineNum">      34 </span>            : #include &lt;lib/core/ScopedNodeId.h&gt;</a>
+<a name="35"><span class="lineNum">      35 </span>            : #include &lt;lib/support/Base64.h&gt;</a>
+<a name="36"><span class="lineNum">      36 </span>            : #include &lt;messaging/ExchangeContext.h&gt;</a>
+<a name="37"><span class="lineNum">      37 </span>            : #include &lt;messaging/ExchangeDelegate.h&gt;</a>
+<a name="38"><span class="lineNum">      38 </span>            : #include &lt;protocols/secure_channel/CASEDestinationId.h&gt;</a>
+<a name="39"><span class="lineNum">      39 </span>            : #include &lt;protocols/secure_channel/Constants.h&gt;</a>
+<a name="40"><span class="lineNum">      40 </span>            : #include &lt;protocols/secure_channel/PairingSession.h&gt;</a>
+<a name="41"><span class="lineNum">      41 </span>            : #include &lt;protocols/secure_channel/SessionEstablishmentExchangeDispatch.h&gt;</a>
+<a name="42"><span class="lineNum">      42 </span>            : #include &lt;protocols/secure_channel/SessionResumptionStorage.h&gt;</a>
+<a name="43"><span class="lineNum">      43 </span>            : #include &lt;system/SystemPacketBuffer.h&gt;</a>
+<a name="44"><span class="lineNum">      44 </span>            : #include &lt;transport/CryptoContext.h&gt;</a>
+<a name="45"><span class="lineNum">      45 </span>            : #include &lt;transport/raw/MessageHeader.h&gt;</a>
+<a name="46"><span class="lineNum">      46 </span>            : #include &lt;transport/raw/PeerAddress.h&gt;</a>
+<a name="47"><span class="lineNum">      47 </span>            : </a>
+<a name="48"><span class="lineNum">      48 </span>            : namespace chip {</a>
+<a name="49"><span class="lineNum">      49 </span>            : </a>
+<a name="50"><span class="lineNum">      50 </span>            : // TODO: temporary derive from Messaging::UnsolicitedMessageHandler, actually the CASEServer should be the umh, it will be fixed</a>
+<a name="51"><span class="lineNum">      51 </span>            : // when implementing concurrent CASE session.</a>
+<a name="52"><span class="lineNum">      52 </span>            : class DLL_EXPORT CASESession : public Messaging::UnsolicitedMessageHandler,</a>
+<a name="53"><span class="lineNum">      53 </span>            :                                public Messaging::ExchangeDelegate,</a>
+<a name="54"><span class="lineNum">      54 </span>            :                                public FabricTable::Delegate,</a>
+<a name="55"><span class="lineNum">      55 </span>            :                                public PairingSession</a>
+<a name="56"><span class="lineNum">      56 </span>            : {</a>
+<a name="57"><span class="lineNum">      57 </span>            : public:</a>
+<a name="58"><span class="lineNum">      58 </span>            :     ~CASESession() override;</a>
+<a name="59"><span class="lineNum">      59 </span>            : </a>
+<a name="60"><span class="lineNum">      60 </span><span class="lineCov">          1 :     Transport::SecureSession::Type GetSecureSessionType() const override { return Transport::SecureSession::Type::kCASE; }</span></a>
+<a name="61"><span class="lineNum">      61 </span><span class="lineCov">         64 :     ScopedNodeId GetPeer() const override { return ScopedNodeId(mPeerNodeId, GetFabricIndex()); }</span></a>
+<a name="62"><span class="lineNum">      62 </span><span class="lineCov">         14 :     ScopedNodeId GetLocalScopedNodeId() const override { return ScopedNodeId(mLocalNodeId, GetFabricIndex()); }</span></a>
+<a name="63"><span class="lineNum">      63 </span><span class="lineCov">         14 :     CATValues GetPeerCATs() const override { return mPeerCATs; };</span></a>
+<a name="64"><span class="lineNum">      64 </span>            : </a>
+<a name="65"><span class="lineNum">      65 </span>            :     /**</a>
+<a name="66"><span class="lineNum">      66 </span>            :      * @brief</a>
+<a name="67"><span class="lineNum">      67 </span>            :      *   Initialize using configured fabrics and wait for session establishment requests.</a>
+<a name="68"><span class="lineNum">      68 </span>            :      *</a>
+<a name="69"><span class="lineNum">      69 </span>            :      * @param sessionManager                session manager from which to allocate a secure session object</a>
+<a name="70"><span class="lineNum">      70 </span>            :      * @param fabricTable                   Table of fabrics that are currently configured on the device</a>
+<a name="71"><span class="lineNum">      71 </span>            :      * @param policy                        Optional application-provided certificate validity policy</a>
+<a name="72"><span class="lineNum">      72 </span>            :      * @param delegate                      Callback object</a>
+<a name="73"><span class="lineNum">      73 </span>            :      * @param previouslyEstablishedPeer     If a session had previously been established successfully to a peer, this should</a>
+<a name="74"><span class="lineNum">      74 </span>            :      *                                      be set to its scoped node-id. Else, this should be initialized to a</a>
+<a name="75"><span class="lineNum">      75 </span>            :      *                                      default-constructed ScopedNodeId().</a>
+<a name="76"><span class="lineNum">      76 </span>            :      * @param mrpLocalConfig                MRP configuration to encode into Sigma2. If not provided, it won't be encoded.</a>
+<a name="77"><span class="lineNum">      77 </span>            :      *</a>
+<a name="78"><span class="lineNum">      78 </span>            :      * @return CHIP_ERROR     The result of initialization</a>
+<a name="79"><span class="lineNum">      79 </span>            :      */</a>
+<a name="80"><span class="lineNum">      80 </span>            :     CHIP_ERROR PrepareForSessionEstablishment(SessionManager &amp; sessionManager, FabricTable * fabricTable,</a>
+<a name="81"><span class="lineNum">      81 </span>            :                                               SessionResumptionStorage * sessionResumptionStorage,</a>
+<a name="82"><span class="lineNum">      82 </span>            :                                               Credentials::CertificateValidityPolicy * policy,</a>
+<a name="83"><span class="lineNum">      83 </span>            :                                               SessionEstablishmentDelegate * delegate,</a>
+<a name="84"><span class="lineNum">      84 </span>            :                                               const ScopedNodeId &amp; previouslyEstablishedPeer,</a>
+<a name="85"><span class="lineNum">      85 </span>            :                                               Optional&lt;ReliableMessageProtocolConfig&gt; mrpLocalConfig);</a>
+<a name="86"><span class="lineNum">      86 </span>            : </a>
+<a name="87"><span class="lineNum">      87 </span>            :     /**</a>
+<a name="88"><span class="lineNum">      88 </span>            :      * @brief</a>
+<a name="89"><span class="lineNum">      89 </span>            :      *   Create and send session establishment request using device's operational credentials.</a>
+<a name="90"><span class="lineNum">      90 </span>            :      *</a>
+<a name="91"><span class="lineNum">      91 </span>            :      * @param sessionManager                session manager from which to allocate a secure session object</a>
+<a name="92"><span class="lineNum">      92 </span>            :      * @param fabricTable                   The fabric table that contains a fabric in common with the peer</a>
+<a name="93"><span class="lineNum">      93 </span>            :      * @param peerScopedNodeId              Node to which we want to establish a session</a>
+<a name="94"><span class="lineNum">      94 </span>            :      * @param exchangeCtxt                  The exchange context to send and receive messages with the peer</a>
+<a name="95"><span class="lineNum">      95 </span>            :      * @param policy                        Optional application-provided certificate validity policy</a>
+<a name="96"><span class="lineNum">      96 </span>            :      * @param delegate                      Callback object</a>
+<a name="97"><span class="lineNum">      97 </span>            :      *</a>
+<a name="98"><span class="lineNum">      98 </span>            :      * @return CHIP_ERROR      The result of initialization</a>
+<a name="99"><span class="lineNum">      99 </span>            :      */</a>
+<a name="100"><span class="lineNum">     100 </span>            :     CHIP_ERROR</a>
+<a name="101"><span class="lineNum">     101 </span>            :     EstablishSession(SessionManager &amp; sessionManager, FabricTable * fabricTable, ScopedNodeId peerScopedNodeId,</a>
+<a name="102"><span class="lineNum">     102 </span>            :                      Messaging::ExchangeContext * exchangeCtxt, SessionResumptionStorage * sessionResumptionStorage,</a>
+<a name="103"><span class="lineNum">     103 </span>            :                      Credentials::CertificateValidityPolicy * policy, SessionEstablishmentDelegate * delegate,</a>
+<a name="104"><span class="lineNum">     104 </span>            :                      Optional&lt;ReliableMessageProtocolConfig&gt; mrpLocalConfig);</a>
+<a name="105"><span class="lineNum">     105 </span>            : </a>
+<a name="106"><span class="lineNum">     106 </span>            :     /**</a>
+<a name="107"><span class="lineNum">     107 </span>            :      * @brief Set the Group Data Provider which will be used to look up IPKs</a>
+<a name="108"><span class="lineNum">     108 </span>            :      *</a>
+<a name="109"><span class="lineNum">     109 </span>            :      * The GroupDataProvider set MUST have key sets available through `GetIpkKeySet` method</a>
+<a name="110"><span class="lineNum">     110 </span>            :      * for the FabricIndex that is associated with the CASESession's FabricInfo.</a>
+<a name="111"><span class="lineNum">     111 </span>            :      *</a>
+<a name="112"><span class="lineNum">     112 </span>            :      * @param groupDataProvider - Pointer to the group data provider (if nullptr, will error at start of</a>
+<a name="113"><span class="lineNum">     113 </span>            :      *                            establishment, not here).</a>
+<a name="114"><span class="lineNum">     114 </span>            :      */</a>
+<a name="115"><span class="lineNum">     115 </span><span class="lineCov">          1 :     void SetGroupDataProvider(Credentials::GroupDataProvider * groupDataProvider) { mGroupDataProvider = groupDataProvider; }</span></a>
+<a name="116"><span class="lineNum">     116 </span>            : </a>
+<a name="117"><span class="lineNum">     117 </span>            :     /**</a>
+<a name="118"><span class="lineNum">     118 </span>            :      * Parse a sigma1 message.  This function will return success only if the</a>
+<a name="119"><span class="lineNum">     119 </span>            :      * message passes schema checks.  Specifically:</a>
+<a name="120"><span class="lineNum">     120 </span>            :      *   * The tags come in order.</a>
+<a name="121"><span class="lineNum">     121 </span>            :      *   * The required tags are present.</a>
+<a name="122"><span class="lineNum">     122 </span>            :      *   * The values for the tags that are present satisfy schema requirements</a>
+<a name="123"><span class="lineNum">     123 </span>            :      *     (e.g. constraints on octet string lengths)</a>
+<a name="124"><span class="lineNum">     124 </span>            :      *   * Either resumptionID and initiatorResume1MIC are both present or both</a>
+<a name="125"><span class="lineNum">     125 </span>            :      *     absent.</a>
+<a name="126"><span class="lineNum">     126 </span>            :      *</a>
+<a name="127"><span class="lineNum">     127 </span>            :      * On success, the initiatorRandom, initiatorSessionId, destinationId,</a>
+<a name="128"><span class="lineNum">     128 </span>            :      * initiatorEphPubKey outparams will be set to the corresponding values in</a>
+<a name="129"><span class="lineNum">     129 </span>            :      * the message.</a>
+<a name="130"><span class="lineNum">     130 </span>            :      *</a>
+<a name="131"><span class="lineNum">     131 </span>            :      * On success, either the resumptionRequested outparam will be set to true</a>
+<a name="132"><span class="lineNum">     132 </span>            :      * and the  resumptionID and initiatorResumeMIC outparams will be set to</a>
+<a name="133"><span class="lineNum">     133 </span>            :      * valid values, or the resumptionRequested outparam will be set to false.</a>
+<a name="134"><span class="lineNum">     134 </span>            :      */</a>
+<a name="135"><span class="lineNum">     135 </span>            :     CHIP_ERROR ParseSigma1(TLV::ContiguousBufferTLVReader &amp; tlvReader, ByteSpan &amp; initiatorRandom, uint16_t &amp; initiatorSessionId,</a>
+<a name="136"><span class="lineNum">     136 </span>            :                            ByteSpan &amp; destinationId, ByteSpan &amp; initiatorEphPubKey, bool &amp; resumptionRequested,</a>
+<a name="137"><span class="lineNum">     137 </span>            :                            ByteSpan &amp; resumptionId, ByteSpan &amp; initiatorResumeMIC);</a>
+<a name="138"><span class="lineNum">     138 </span>            : </a>
+<a name="139"><span class="lineNum">     139 </span>            :     /**</a>
+<a name="140"><span class="lineNum">     140 </span>            :      * @brief</a>
+<a name="141"><span class="lineNum">     141 </span>            :      *   Derive a secure session from the established session. The API will return error if called before session is established.</a>
+<a name="142"><span class="lineNum">     142 </span>            :      *</a>
+<a name="143"><span class="lineNum">     143 </span>            :      * @param session     Reference to the secure session that will be initialized once session establishment is complete</a>
+<a name="144"><span class="lineNum">     144 </span>            :      * @return CHIP_ERROR The result of session derivation</a>
+<a name="145"><span class="lineNum">     145 </span>            :      */</a>
+<a name="146"><span class="lineNum">     146 </span>            :     CHIP_ERROR DeriveSecureSession(CryptoContext &amp; session) const override;</a>
+<a name="147"><span class="lineNum">     147 </span>            : </a>
+<a name="148"><span class="lineNum">     148 </span>            :     //// UnsolicitedMessageHandler Implementation ////</a>
+<a name="149"><span class="lineNum">     149 </span><span class="lineCov">          2 :     CHIP_ERROR OnUnsolicitedMessageReceived(const PayloadHeader &amp; payloadHeader, ExchangeDelegate *&amp; newDelegate) override</span></a>
+<a name="150"><span class="lineNum">     150 </span>            :     {</a>
+<a name="151"><span class="lineNum">     151 </span><span class="lineCov">          2 :         newDelegate = this;</span></a>
+<a name="152"><span class="lineNum">     152 </span><span class="lineCov">          2 :         return CHIP_NO_ERROR;</span></a>
+<a name="153"><span class="lineNum">     153 </span>            :     }</a>
+<a name="154"><span class="lineNum">     154 </span>            : </a>
+<a name="155"><span class="lineNum">     155 </span>            :     //// ExchangeDelegate Implementation ////</a>
+<a name="156"><span class="lineNum">     156 </span>            :     CHIP_ERROR OnMessageReceived(Messaging::ExchangeContext * ec, const PayloadHeader &amp; payloadHeader,</a>
+<a name="157"><span class="lineNum">     157 </span>            :                                  System::PacketBufferHandle &amp;&amp; payload) override;</a>
+<a name="158"><span class="lineNum">     158 </span>            :     void OnResponseTimeout(Messaging::ExchangeContext * ec) override;</a>
+<a name="159"><span class="lineNum">     159 </span><span class="lineCov">         18 :     Messaging::ExchangeMessageDispatch &amp; GetMessageDispatch() override { return SessionEstablishmentExchangeDispatch::Instance(); }</span></a>
+<a name="160"><span class="lineNum">     160 </span>            : </a>
+<a name="161"><span class="lineNum">     161 </span>            :     //// SessionDelegate ////</a>
+<a name="162"><span class="lineNum">     162 </span>            :     void OnSessionReleased() override;</a>
+<a name="163"><span class="lineNum">     163 </span>            : </a>
+<a name="164"><span class="lineNum">     164 </span>            :     //// FabricTable::Delegate Implementation ////</a>
+<a name="165"><span class="lineNum">     165 </span><span class="lineNoCov">          0 :     void OnFabricRemoved(const FabricTable &amp; fabricTable, FabricIndex fabricIndex) override</span></a>
+<a name="166"><span class="lineNum">     166 </span>            :     {</a>
+<a name="167"><span class="lineNum">     167 </span>            :         (void) fabricTable;</a>
+<a name="168"><span class="lineNum">     168 </span><span class="lineNoCov">          0 :         InvalidateIfPendingEstablishmentOnFabric(fabricIndex);</span></a>
+<a name="169"><span class="lineNum">     169 </span><span class="lineNoCov">          0 :     }</span></a>
+<a name="170"><span class="lineNum">     170 </span><span class="lineCov">          7 :     void OnFabricUpdated(const chip::FabricTable &amp; fabricTable, chip::FabricIndex fabricIndex) override</span></a>
+<a name="171"><span class="lineNum">     171 </span>            :     {</a>
+<a name="172"><span class="lineNum">     172 </span>            :         (void) fabricTable;</a>
+<a name="173"><span class="lineNum">     173 </span><span class="lineCov">          7 :         InvalidateIfPendingEstablishmentOnFabric(fabricIndex);</span></a>
+<a name="174"><span class="lineNum">     174 </span><span class="lineCov">          7 :     }</span></a>
+<a name="175"><span class="lineNum">     175 </span>            : </a>
+<a name="176"><span class="lineNum">     176 </span><span class="lineCov">         78 :     FabricIndex GetFabricIndex() const { return mFabricIndex; }</span></a>
+<a name="177"><span class="lineNum">     177 </span>            : </a>
+<a name="178"><span class="lineNum">     178 </span>            :     // TODO: remove Clear, we should create a new instance instead reset the old instance.</a>
+<a name="179"><span class="lineNum">     179 </span>            :     /** @brief This function zeroes out and resets the memory used by the object.</a>
+<a name="180"><span class="lineNum">     180 </span>            :      **/</a>
+<a name="181"><span class="lineNum">     181 </span>            :     void Clear();</a>
+<a name="182"><span class="lineNum">     182 </span>            : </a>
+<a name="183"><span class="lineNum">     183 </span>            : private:</a>
+<a name="184"><span class="lineNum">     184 </span>            :     friend class TestCASESession;</a>
+<a name="185"><span class="lineNum">     185 </span>            :     enum class State : uint8_t</a>
+<a name="186"><span class="lineNum">     186 </span>            :     {</a>
+<a name="187"><span class="lineNum">     187 </span>            :         kInitialized       = 0,</a>
+<a name="188"><span class="lineNum">     188 </span>            :         kSentSigma1        = 1,</a>
+<a name="189"><span class="lineNum">     189 </span>            :         kSentSigma2        = 2,</a>
+<a name="190"><span class="lineNum">     190 </span>            :         kSentSigma3        = 3,</a>
+<a name="191"><span class="lineNum">     191 </span>            :         kSentSigma1Resume  = 4,</a>
+<a name="192"><span class="lineNum">     192 </span>            :         kSentSigma2Resume  = 5,</a>
+<a name="193"><span class="lineNum">     193 </span>            :         kFinished          = 6,</a>
+<a name="194"><span class="lineNum">     194 </span>            :         kFinishedViaResume = 7,</a>
+<a name="195"><span class="lineNum">     195 </span>            :     };</a>
+<a name="196"><span class="lineNum">     196 </span>            : </a>
+<a name="197"><span class="lineNum">     197 </span>            :     /*</a>
+<a name="198"><span class="lineNum">     198 </span>            :      * Initialize the object given a reference to the SessionManager, certificate validity policy and a delegate which will be</a>
+<a name="199"><span class="lineNum">     199 </span>            :      * notified of any further progress on this session.</a>
+<a name="200"><span class="lineNum">     200 </span>            :      *</a>
+<a name="201"><span class="lineNum">     201 </span>            :      * If we're either establishing or finished establishing a session to a peer in either initiator or responder</a>
+<a name="202"><span class="lineNum">     202 </span>            :      * roles, the node id of that peer should be provided in sessionEvictionHint. Else, it should be initialized</a>
+<a name="203"><span class="lineNum">     203 </span>            :      * to a default-constructed ScopedNodeId().</a>
+<a name="204"><span class="lineNum">     204 </span>            :      *</a>
+<a name="205"><span class="lineNum">     205 </span>            :      */</a>
+<a name="206"><span class="lineNum">     206 </span>            :     CHIP_ERROR Init(SessionManager &amp; sessionManager, Credentials::CertificateValidityPolicy * policy,</a>
+<a name="207"><span class="lineNum">     207 </span>            :                     SessionEstablishmentDelegate * delegate, const ScopedNodeId &amp; sessionEvictionHint);</a>
+<a name="208"><span class="lineNum">     208 </span>            : </a>
+<a name="209"><span class="lineNum">     209 </span>            :     // On success, sets mIpk to the correct value for outgoing Sigma1 based on internal state</a>
+<a name="210"><span class="lineNum">     210 </span>            :     CHIP_ERROR RecoverInitiatorIpk();</a>
+<a name="211"><span class="lineNum">     211 </span>            :     // On success, sets locally maching mFabricInfo in internal state to the entry matched by</a>
+<a name="212"><span class="lineNum">     212 </span>            :     // destinationId/initiatorRandom from processing of Sigma1, and sets mIpk to the right IPK.</a>
+<a name="213"><span class="lineNum">     213 </span>            :     CHIP_ERROR FindLocalNodeFromDestinationId(const ByteSpan &amp; destinationId, const ByteSpan &amp; initiatorRandom);</a>
+<a name="214"><span class="lineNum">     214 </span>            : </a>
+<a name="215"><span class="lineNum">     215 </span>            :     CHIP_ERROR SendSigma1();</a>
+<a name="216"><span class="lineNum">     216 </span>            :     CHIP_ERROR HandleSigma1_and_SendSigma2(System::PacketBufferHandle &amp;&amp; msg);</a>
+<a name="217"><span class="lineNum">     217 </span>            :     CHIP_ERROR HandleSigma1(System::PacketBufferHandle &amp;&amp; msg);</a>
+<a name="218"><span class="lineNum">     218 </span>            :     CHIP_ERROR TryResumeSession(SessionResumptionStorage::ConstResumptionIdView resumptionId, ByteSpan resume1MIC,</a>
+<a name="219"><span class="lineNum">     219 </span>            :                                 ByteSpan initiatorRandom);</a>
+<a name="220"><span class="lineNum">     220 </span>            :     CHIP_ERROR SendSigma2();</a>
+<a name="221"><span class="lineNum">     221 </span>            :     CHIP_ERROR HandleSigma2_and_SendSigma3(System::PacketBufferHandle &amp;&amp; msg);</a>
+<a name="222"><span class="lineNum">     222 </span>            :     CHIP_ERROR HandleSigma2(System::PacketBufferHandle &amp;&amp; msg);</a>
+<a name="223"><span class="lineNum">     223 </span>            :     CHIP_ERROR HandleSigma2Resume(System::PacketBufferHandle &amp;&amp; msg);</a>
+<a name="224"><span class="lineNum">     224 </span>            :     CHIP_ERROR SendSigma3();</a>
+<a name="225"><span class="lineNum">     225 </span>            :     CHIP_ERROR HandleSigma3(System::PacketBufferHandle &amp;&amp; msg);</a>
+<a name="226"><span class="lineNum">     226 </span>            : </a>
+<a name="227"><span class="lineNum">     227 </span>            :     CHIP_ERROR SendSigma2Resume();</a>
+<a name="228"><span class="lineNum">     228 </span>            : </a>
+<a name="229"><span class="lineNum">     229 </span>            :     CHIP_ERROR ConstructSaltSigma2(const ByteSpan &amp; rand, const Crypto::P256PublicKey &amp; pubkey, const ByteSpan &amp; ipk,</a>
+<a name="230"><span class="lineNum">     230 </span>            :                                    MutableByteSpan &amp; salt);</a>
+<a name="231"><span class="lineNum">     231 </span>            :     CHIP_ERROR ValidatePeerIdentity(const ByteSpan &amp; peerNOC, const ByteSpan &amp; peerICAC, NodeId &amp; peerNodeId,</a>
+<a name="232"><span class="lineNum">     232 </span>            :                                     Crypto::P256PublicKey &amp; peerPublicKey);</a>
+<a name="233"><span class="lineNum">     233 </span>            :     CHIP_ERROR ConstructTBSData(const ByteSpan &amp; senderNOC, const ByteSpan &amp; senderICAC, const ByteSpan &amp; senderPubKey,</a>
+<a name="234"><span class="lineNum">     234 </span>            :                                 const ByteSpan &amp; receiverPubKey, uint8_t * tbsData, size_t &amp; tbsDataLen);</a>
+<a name="235"><span class="lineNum">     235 </span>            :     CHIP_ERROR ConstructSaltSigma3(const ByteSpan &amp; ipk, MutableByteSpan &amp; salt);</a>
+<a name="236"><span class="lineNum">     236 </span>            : </a>
+<a name="237"><span class="lineNum">     237 </span>            :     CHIP_ERROR ConstructSigmaResumeKey(const ByteSpan &amp; initiatorRandom, const ByteSpan &amp; resumptionID, const ByteSpan &amp; skInfo,</a>
+<a name="238"><span class="lineNum">     238 </span>            :                                        const ByteSpan &amp; nonce, MutableByteSpan &amp; resumeKey);</a>
+<a name="239"><span class="lineNum">     239 </span>            : </a>
+<a name="240"><span class="lineNum">     240 </span>            :     CHIP_ERROR GenerateSigmaResumeMIC(const ByteSpan &amp; initiatorRandom, const ByteSpan &amp; resumptionID, const ByteSpan &amp; skInfo,</a>
+<a name="241"><span class="lineNum">     241 </span>            :                                       const ByteSpan &amp; nonce, MutableByteSpan &amp; resumeMIC);</a>
+<a name="242"><span class="lineNum">     242 </span>            :     CHIP_ERROR ValidateSigmaResumeMIC(const ByteSpan &amp; resumeMIC, const ByteSpan &amp; initiatorRandom, const ByteSpan &amp; resumptionID,</a>
+<a name="243"><span class="lineNum">     243 </span>            :                                       const ByteSpan &amp; skInfo, const ByteSpan &amp; nonce);</a>
+<a name="244"><span class="lineNum">     244 </span>            : </a>
+<a name="245"><span class="lineNum">     245 </span>            :     void OnSuccessStatusReport() override;</a>
+<a name="246"><span class="lineNum">     246 </span>            :     CHIP_ERROR OnFailureStatusReport(Protocols::SecureChannel::GeneralStatusCode generalCode, uint16_t protocolCode) override;</a>
+<a name="247"><span class="lineNum">     247 </span>            : </a>
+<a name="248"><span class="lineNum">     248 </span>            :     void AbortPendingEstablish(CHIP_ERROR err);</a>
+<a name="249"><span class="lineNum">     249 </span>            : </a>
+<a name="250"><span class="lineNum">     250 </span>            :     CHIP_ERROR GetHardcodedTime();</a>
+<a name="251"><span class="lineNum">     251 </span>            : </a>
+<a name="252"><span class="lineNum">     252 </span>            :     CHIP_ERROR SetEffectiveTime();</a>
+<a name="253"><span class="lineNum">     253 </span>            : </a>
+<a name="254"><span class="lineNum">     254 </span>            :     CHIP_ERROR ValidateReceivedMessage(Messaging::ExchangeContext * ec, const PayloadHeader &amp; payloadHeader,</a>
+<a name="255"><span class="lineNum">     255 </span>            :                                        const System::PacketBufferHandle &amp; msg);</a>
+<a name="256"><span class="lineNum">     256 </span>            : </a>
+<a name="257"><span class="lineNum">     257 </span>            :     void InvalidateIfPendingEstablishmentOnFabric(FabricIndex fabricIndex);</a>
+<a name="258"><span class="lineNum">     258 </span>            : </a>
+<a name="259"><span class="lineNum">     259 </span>            : #if CONFIG_BUILD_FOR_HOST_UNIT_TEST</a>
+<a name="260"><span class="lineNum">     260 </span>            :     void SetStopSigmaHandshakeAt(Optional&lt;State&gt; state) { mStopHandshakeAtState = state; }</a>
+<a name="261"><span class="lineNum">     261 </span>            : #endif // CONFIG_BUILD_FOR_HOST_UNIT_TEST</a>
+<a name="262"><span class="lineNum">     262 </span>            : </a>
+<a name="263"><span class="lineNum">     263 </span>            :     Crypto::Hash_SHA256_stream mCommissioningHash;</a>
+<a name="264"><span class="lineNum">     264 </span>            :     Crypto::P256PublicKey mRemotePubKey;</a>
+<a name="265"><span class="lineNum">     265 </span>            :     Crypto::P256Keypair * mEphemeralKey = nullptr;</a>
+<a name="266"><span class="lineNum">     266 </span>            :     Crypto::P256ECDHDerivedSecret mSharedSecret;</a>
+<a name="267"><span class="lineNum">     267 </span>            :     Credentials::ValidationContext mValidContext;</a>
+<a name="268"><span class="lineNum">     268 </span>            :     Credentials::GroupDataProvider * mGroupDataProvider = nullptr;</a>
+<a name="269"><span class="lineNum">     269 </span>            : </a>
+<a name="270"><span class="lineNum">     270 </span>            :     uint8_t mMessageDigest[Crypto::kSHA256_Hash_Length];</a>
+<a name="271"><span class="lineNum">     271 </span>            :     uint8_t mIPK[kIPKSize];</a>
+<a name="272"><span class="lineNum">     272 </span>            : </a>
+<a name="273"><span class="lineNum">     273 </span>            :     SessionResumptionStorage * mSessionResumptionStorage = nullptr;</a>
+<a name="274"><span class="lineNum">     274 </span>            : </a>
+<a name="275"><span class="lineNum">     275 </span>            :     FabricTable * mFabricsTable = nullptr;</a>
+<a name="276"><span class="lineNum">     276 </span>            :     FabricIndex mFabricIndex    = kUndefinedFabricIndex;</a>
+<a name="277"><span class="lineNum">     277 </span>            :     NodeId mPeerNodeId          = kUndefinedNodeId;</a>
+<a name="278"><span class="lineNum">     278 </span>            :     NodeId mLocalNodeId         = kUndefinedNodeId;</a>
+<a name="279"><span class="lineNum">     279 </span>            :     CATValues mPeerCATs;</a>
+<a name="280"><span class="lineNum">     280 </span>            : </a>
+<a name="281"><span class="lineNum">     281 </span>            :     SessionResumptionStorage::ResumptionIdStorage mResumeResumptionId; // ResumptionId which is used to resume this session</a>
+<a name="282"><span class="lineNum">     282 </span>            :     SessionResumptionStorage::ResumptionIdStorage mNewResumptionId;    // ResumptionId which is stored to resume future session</a>
+<a name="283"><span class="lineNum">     283 </span>            :     // Sigma1 initiator random, maintained to be reused post-Sigma1, such as when generating Sigma2 S2RK key</a>
+<a name="284"><span class="lineNum">     284 </span>            :     uint8_t mInitiatorRandom[kSigmaParamRandomNumberSize];</a>
+<a name="285"><span class="lineNum">     285 </span>            : </a>
+<a name="286"><span class="lineNum">     286 </span>            :     State mState;</a>
+<a name="287"><span class="lineNum">     287 </span>            : </a>
+<a name="288"><span class="lineNum">     288 </span>            : #if CONFIG_BUILD_FOR_HOST_UNIT_TEST</a>
+<a name="289"><span class="lineNum">     289 </span>            :     Optional&lt;State&gt; mStopHandshakeAtState = Optional&lt;State&gt;::Missing();</a>
+<a name="290"><span class="lineNum">     290 </span>            : #endif // CONFIG_BUILD_FOR_HOST_UNIT_TEST</a>
+<a name="291"><span class="lineNum">     291 </span>            : };</a>
+<a name="292"><span class="lineNum">     292 </span>            : </a>
+<a name="293"><span class="lineNum">     293 </span>            : } // namespace chip</a>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.14</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

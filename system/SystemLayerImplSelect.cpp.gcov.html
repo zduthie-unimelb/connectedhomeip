@@ -1,0 +1,642 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - lcov_final.info - system/SystemLayerImplSelect.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">system</a> - SystemLayerImplSelect.cpp<span style="font-size: 80%;"> (source / <a href="SystemLayerImplSelect.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">lcov_final.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">143</td>
+            <td class="headerCovTableEntry">148</td>
+            <td class="headerCovTableEntryHi">96.6 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2023-03-28 18:24:35</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">18</td>
+            <td class="headerCovTableEntry">18</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">          Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>            : /*</a>
+<a name="2"><span class="lineNum">       2 </span>            :  *</a>
+<a name="3"><span class="lineNum">       3 </span>            :  *    Copyright (c) 2020-2021 Project CHIP Authors</a>
+<a name="4"><span class="lineNum">       4 </span>            :  *    Copyright (c) 2014-2017 Nest Labs, Inc.</a>
+<a name="5"><span class="lineNum">       5 </span>            :  *</a>
+<a name="6"><span class="lineNum">       6 </span>            :  *    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</a>
+<a name="7"><span class="lineNum">       7 </span>            :  *    you may not use this file except in compliance with the License.</a>
+<a name="8"><span class="lineNum">       8 </span>            :  *    You may obtain a copy of the License at</a>
+<a name="9"><span class="lineNum">       9 </span>            :  *</a>
+<a name="10"><span class="lineNum">      10 </span>            :  *        http://www.apache.org/licenses/LICENSE-2.0</a>
+<a name="11"><span class="lineNum">      11 </span>            :  *</a>
+<a name="12"><span class="lineNum">      12 </span>            :  *    Unless required by applicable law or agreed to in writing, software</a>
+<a name="13"><span class="lineNum">      13 </span>            :  *    distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</a>
+<a name="14"><span class="lineNum">      14 </span>            :  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</a>
+<a name="15"><span class="lineNum">      15 </span>            :  *    See the License for the specific language governing permissions and</a>
+<a name="16"><span class="lineNum">      16 </span>            :  *    limitations under the License.</a>
+<a name="17"><span class="lineNum">      17 </span>            :  */</a>
+<a name="18"><span class="lineNum">      18 </span>            : </a>
+<a name="19"><span class="lineNum">      19 </span>            : /**</a>
+<a name="20"><span class="lineNum">      20 </span>            :  *    @file</a>
+<a name="21"><span class="lineNum">      21 </span>            :  *      This file implements Layer using select().</a>
+<a name="22"><span class="lineNum">      22 </span>            :  */</a>
+<a name="23"><span class="lineNum">      23 </span>            : </a>
+<a name="24"><span class="lineNum">      24 </span>            : #include &lt;lib/support/CodeUtils.h&gt;</a>
+<a name="25"><span class="lineNum">      25 </span>            : #include &lt;lib/support/TimeUtils.h&gt;</a>
+<a name="26"><span class="lineNum">      26 </span>            : #include &lt;platform/LockTracker.h&gt;</a>
+<a name="27"><span class="lineNum">      27 </span>            : #include &lt;system/SystemFaultInjection.h&gt;</a>
+<a name="28"><span class="lineNum">      28 </span>            : #include &lt;system/SystemLayer.h&gt;</a>
+<a name="29"><span class="lineNum">      29 </span>            : #include &lt;system/SystemLayerImplSelect.h&gt;</a>
+<a name="30"><span class="lineNum">      30 </span>            : </a>
+<a name="31"><span class="lineNum">      31 </span>            : #include &lt;errno.h&gt;</a>
+<a name="32"><span class="lineNum">      32 </span>            : </a>
+<a name="33"><span class="lineNum">      33 </span>            : // Choose an approximation of PTHREAD_NULL if pthread.h doesn't define one.</a>
+<a name="34"><span class="lineNum">      34 </span>            : #if CHIP_SYSTEM_CONFIG_POSIX_LOCKING &amp;&amp; !defined(PTHREAD_NULL)</a>
+<a name="35"><span class="lineNum">      35 </span>            : #define PTHREAD_NULL 0</a>
+<a name="36"><span class="lineNum">      36 </span>            : #endif // CHIP_SYSTEM_CONFIG_POSIX_LOCKING &amp;&amp; !defined(PTHREAD_NULL)</a>
+<a name="37"><span class="lineNum">      37 </span>            : </a>
+<a name="38"><span class="lineNum">      38 </span>            : namespace chip {</a>
+<a name="39"><span class="lineNum">      39 </span>            : namespace System {</a>
+<a name="40"><span class="lineNum">      40 </span>            : </a>
+<a name="41"><span class="lineNum">      41 </span>            : constexpr Clock::Seconds64 kDefaultMinSleepPeriod = Clock::Seconds64(60 * 60 * 24 * 30); // Month [sec]</a>
+<a name="42"><span class="lineNum">      42 </span>            : </a>
+<a name="43"><span class="lineNum">      43 </span><span class="lineCov">         49 : CHIP_ERROR LayerImplSelect::Init()</span></a>
+<a name="44"><span class="lineNum">      44 </span>            : {</a>
+<a name="45"><span class="lineNum">      45 </span><span class="lineCov">         49 :     VerifyOrReturnError(mLayerState.SetInitializing(), CHIP_ERROR_INCORRECT_STATE);</span></a>
+<a name="46"><span class="lineNum">      46 </span>            : </a>
+<a name="47"><span class="lineNum">      47 </span><span class="lineCov">         49 :     RegisterPOSIXErrorFormatter();</span></a>
+<a name="48"><span class="lineNum">      48 </span>            : </a>
+<a name="49"><span class="lineNum">      49 </span><span class="lineCov">       3185 :     for (auto &amp; w : mSocketWatchPool)</span></a>
+<a name="50"><span class="lineNum">      50 </span>            :     {</a>
+<a name="51"><span class="lineNum">      51 </span><span class="lineCov">       3136 :         w.Clear();</span></a>
+<a name="52"><span class="lineNum">      52 </span>            :     }</a>
+<a name="53"><span class="lineNum">      53 </span>            : </a>
+<a name="54"><span class="lineNum">      54 </span>            : #if CHIP_SYSTEM_CONFIG_POSIX_LOCKING</a>
+<a name="55"><span class="lineNum">      55 </span><span class="lineCov">         49 :     mHandleSelectThread = PTHREAD_NULL;</span></a>
+<a name="56"><span class="lineNum">      56 </span>            : #endif // CHIP_SYSTEM_CONFIG_POSIX_LOCKING</a>
+<a name="57"><span class="lineNum">      57 </span>            : </a>
+<a name="58"><span class="lineNum">      58 </span>            :     // Create an event to allow an arbitrary thread to wake the thread in the select loop.</a>
+<a name="59"><span class="lineNum">      59 </span><span class="lineCov">         49 :     ReturnErrorOnFailure(mWakeEvent.Open(*this));</span></a>
+<a name="60"><span class="lineNum">      60 </span>            : </a>
+<a name="61"><span class="lineNum">      61 </span><span class="lineCov">         49 :     VerifyOrReturnError(mLayerState.SetInitialized(), CHIP_ERROR_INCORRECT_STATE);</span></a>
+<a name="62"><span class="lineNum">      62 </span><span class="lineCov">         49 :     return CHIP_NO_ERROR;</span></a>
+<a name="63"><span class="lineNum">      63 </span>            : }</a>
+<a name="64"><span class="lineNum">      64 </span>            : </a>
+<a name="65"><span class="lineNum">      65 </span><span class="lineCov">         49 : void LayerImplSelect::Shutdown()</span></a>
+<a name="66"><span class="lineNum">      66 </span>            : {</a>
+<a name="67"><span class="lineNum">      67 </span><span class="lineCov">         49 :     VerifyOrReturn(mLayerState.SetShuttingDown());</span></a>
+<a name="68"><span class="lineNum">      68 </span>            : </a>
+<a name="69"><span class="lineNum">      69 </span>            : #if CHIP_SYSTEM_CONFIG_USE_DISPATCH</a>
+<a name="70"><span class="lineNum">      70 </span>            :     TimerList::Node * timer;</a>
+<a name="71"><span class="lineNum">      71 </span>            :     while ((timer = mTimerList.PopEarliest()) != nullptr)</a>
+<a name="72"><span class="lineNum">      72 </span>            :     {</a>
+<a name="73"><span class="lineNum">      73 </span>            :         if (timer-&gt;mTimerSource != nullptr)</a>
+<a name="74"><span class="lineNum">      74 </span>            :         {</a>
+<a name="75"><span class="lineNum">      75 </span>            :             dispatch_source_cancel(timer-&gt;mTimerSource);</a>
+<a name="76"><span class="lineNum">      76 </span>            :             dispatch_release(timer-&gt;mTimerSource);</a>
+<a name="77"><span class="lineNum">      77 </span>            :         }</a>
+<a name="78"><span class="lineNum">      78 </span>            :     }</a>
+<a name="79"><span class="lineNum">      79 </span>            :     mTimerPool.ReleaseAll();</a>
+<a name="80"><span class="lineNum">      80 </span>            : </a>
+<a name="81"><span class="lineNum">      81 </span>            :     for (auto &amp; w : mSocketWatchPool)</a>
+<a name="82"><span class="lineNum">      82 </span>            :     {</a>
+<a name="83"><span class="lineNum">      83 </span>            :         w.DisableAndClear();</a>
+<a name="84"><span class="lineNum">      84 </span>            :     }</a>
+<a name="85"><span class="lineNum">      85 </span>            : </a>
+<a name="86"><span class="lineNum">      86 </span>            : #else  // CHIP_SYSTEM_CONFIG_USE_DISPATCH</a>
+<a name="87"><span class="lineNum">      87 </span><span class="lineCov">         49 :     mTimerList.Clear();</span></a>
+<a name="88"><span class="lineNum">      88 </span><span class="lineCov">         49 :     mTimerPool.ReleaseAll();</span></a>
+<a name="89"><span class="lineNum">      89 </span>            : #endif // CHIP_SYSTEM_CONFIG_USE_DISPATCH</a>
+<a name="90"><span class="lineNum">      90 </span>            : </a>
+<a name="91"><span class="lineNum">      91 </span><span class="lineCov">         49 :     mWakeEvent.Close(*this);</span></a>
+<a name="92"><span class="lineNum">      92 </span>            : </a>
+<a name="93"><span class="lineNum">      93 </span><span class="lineCov">         49 :     mLayerState.ResetFromShuttingDown(); // Return to uninitialized state to permit re-initialization.</span></a>
+<a name="94"><span class="lineNum">      94 </span>            : }</a>
+<a name="95"><span class="lineNum">      95 </span>            : </a>
+<a name="96"><span class="lineNum">      96 </span><span class="lineCov">    6344571 : void LayerImplSelect::Signal()</span></a>
+<a name="97"><span class="lineNum">      97 </span>            : {</a>
+<a name="98"><span class="lineNum">      98 </span>            :     /*</a>
+<a name="99"><span class="lineNum">      99 </span>            :      * Wake up the I/O thread by writing a single byte to the wake pipe.</a>
+<a name="100"><span class="lineNum">     100 </span>            :      *</a>
+<a name="101"><span class="lineNum">     101 </span>            :      * If this is being called from within an I/O event callback, then writing to the wake pipe can be skipped,</a>
+<a name="102"><span class="lineNum">     102 </span>            :      * since the I/O thread is already awake.</a>
+<a name="103"><span class="lineNum">     103 </span>            :      *</a>
+<a name="104"><span class="lineNum">     104 </span>            :      * Furthermore, we don't care if this write fails as the only reasonably likely failure is that the pipe is full, in which</a>
+<a name="105"><span class="lineNum">     105 </span>            :      * case the select calling thread is going to wake up anyway.</a>
+<a name="106"><span class="lineNum">     106 </span>            :      */</a>
+<a name="107"><span class="lineNum">     107 </span>            : #if CHIP_SYSTEM_CONFIG_POSIX_LOCKING</a>
+<a name="108"><span class="lineNum">     108 </span><span class="lineCov">    6344571 :     if (pthread_equal(mHandleSelectThread, pthread_self()))</span></a>
+<a name="109"><span class="lineNum">     109 </span>            :     {</a>
+<a name="110"><span class="lineNum">     110 </span><span class="lineCov">      45874 :         return;</span></a>
+<a name="111"><span class="lineNum">     111 </span>            :     }</a>
+<a name="112"><span class="lineNum">     112 </span>            : #endif // CHIP_SYSTEM_CONFIG_POSIX_LOCKING</a>
+<a name="113"><span class="lineNum">     113 </span>            : </a>
+<a name="114"><span class="lineNum">     114 </span>            :     // Send notification to wake up the select call.</a>
+<a name="115"><span class="lineNum">     115 </span><span class="lineCov">    6298697 :     CHIP_ERROR status = mWakeEvent.Notify();</span></a>
+<a name="116"><span class="lineNum">     116 </span><span class="lineCov">    6298697 :     if (status != CHIP_NO_ERROR)</span></a>
+<a name="117"><span class="lineNum">     117 </span>            :     {</a>
+<a name="118"><span class="lineNum">     118 </span>            : </a>
+<a name="119"><span class="lineNum">     119 </span><span class="lineNoCov">          0 :         ChipLogError(chipSystemLayer, &quot;System wake event notify failed: %&quot; CHIP_ERROR_FORMAT, status.Format());</span></a>
+<a name="120"><span class="lineNum">     120 </span>            :     }</a>
+<a name="121"><span class="lineNum">     121 </span>            : }</a>
+<a name="122"><span class="lineNum">     122 </span>            : </a>
+<a name="123"><span class="lineNum">     123 </span><span class="lineCov">    3212841 : CHIP_ERROR LayerImplSelect::StartTimer(Clock::Timeout delay, TimerCompleteCallback onComplete, void * appState)</span></a>
+<a name="124"><span class="lineNum">     124 </span>            : {</a>
+<a name="125"><span class="lineNum">     125 </span><span class="lineCov">    3212841 :     VerifyOrReturnError(mLayerState.IsInitialized(), CHIP_ERROR_INCORRECT_STATE);</span></a>
+<a name="126"><span class="lineNum">     126 </span>            : </a>
+<a name="127"><span class="lineNum">     127 </span><span class="lineCov">    3212840 :     CHIP_SYSTEM_FAULT_INJECT(FaultInjection::kFault_TimeoutImmediate, delay = System::Clock::kZero);</span></a>
+<a name="128"><span class="lineNum">     128 </span>            : </a>
+<a name="129"><span class="lineNum">     129 </span><span class="lineCov">    3212840 :     CancelTimer(onComplete, appState);</span></a>
+<a name="130"><span class="lineNum">     130 </span>            : </a>
+<a name="131"><span class="lineNum">     131 </span><span class="lineCov">    3212840 :     TimerList::Node * timer = mTimerPool.Create(*this, SystemClock().GetMonotonicTimestamp() + delay, onComplete, appState);</span></a>
+<a name="132"><span class="lineNum">     132 </span><span class="lineCov">    3212840 :     VerifyOrReturnError(timer != nullptr, CHIP_ERROR_NO_MEMORY);</span></a>
+<a name="133"><span class="lineNum">     133 </span>            : </a>
+<a name="134"><span class="lineNum">     134 </span>            : #if CHIP_SYSTEM_CONFIG_USE_DISPATCH</a>
+<a name="135"><span class="lineNum">     135 </span>            :     dispatch_queue_t dispatchQueue = GetDispatchQueue();</a>
+<a name="136"><span class="lineNum">     136 </span>            :     if (dispatchQueue)</a>
+<a name="137"><span class="lineNum">     137 </span>            :     {</a>
+<a name="138"><span class="lineNum">     138 </span>            :         (void) mTimerList.Add(timer);</a>
+<a name="139"><span class="lineNum">     139 </span>            :         dispatch_source_t timerSource = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, DISPATCH_TIMER_STRICT, dispatchQueue);</a>
+<a name="140"><span class="lineNum">     140 </span>            :         if (timerSource == nullptr)</a>
+<a name="141"><span class="lineNum">     141 </span>            :         {</a>
+<a name="142"><span class="lineNum">     142 </span>            :             chipDie();</a>
+<a name="143"><span class="lineNum">     143 </span>            :         }</a>
+<a name="144"><span class="lineNum">     144 </span>            : </a>
+<a name="145"><span class="lineNum">     145 </span>            :         timer-&gt;mTimerSource = timerSource;</a>
+<a name="146"><span class="lineNum">     146 </span>            :         dispatch_source_set_timer(</a>
+<a name="147"><span class="lineNum">     147 </span>            :             timerSource, dispatch_walltime(nullptr, static_cast&lt;int64_t&gt;(Clock::Milliseconds64(delay).count() * NSEC_PER_MSEC)),</a>
+<a name="148"><span class="lineNum">     148 </span>            :             DISPATCH_TIME_FOREVER, 2 * NSEC_PER_MSEC);</a>
+<a name="149"><span class="lineNum">     149 </span>            :         dispatch_source_set_event_handler(timerSource, ^{</a>
+<a name="150"><span class="lineNum">     150 </span>            :             dispatch_source_cancel(timerSource);</a>
+<a name="151"><span class="lineNum">     151 </span>            :             dispatch_release(timerSource);</a>
+<a name="152"><span class="lineNum">     152 </span>            : </a>
+<a name="153"><span class="lineNum">     153 </span>            :             this-&gt;HandleTimerComplete(timer);</a>
+<a name="154"><span class="lineNum">     154 </span>            :         });</a>
+<a name="155"><span class="lineNum">     155 </span>            :         dispatch_resume(timerSource);</a>
+<a name="156"><span class="lineNum">     156 </span>            :         return CHIP_NO_ERROR;</a>
+<a name="157"><span class="lineNum">     157 </span>            :     }</a>
+<a name="158"><span class="lineNum">     158 </span>            : #endif // CHIP_SYSTEM_CONFIG_USE_DISPATCH</a>
+<a name="159"><span class="lineNum">     159 </span>            : </a>
+<a name="160"><span class="lineNum">     160 </span><span class="lineCov">    3212840 :     if (mTimerList.Add(timer) == timer)</span></a>
+<a name="161"><span class="lineNum">     161 </span>            :     {</a>
+<a name="162"><span class="lineNum">     162 </span>            :         // The new timer is the earliest, so the time until the next event has probably changed.</a>
+<a name="163"><span class="lineNum">     163 </span><span class="lineCov">    3122748 :         Signal();</span></a>
+<a name="164"><span class="lineNum">     164 </span>            :     }</a>
+<a name="165"><span class="lineNum">     165 </span><span class="lineCov">    3212840 :     return CHIP_NO_ERROR;</span></a>
+<a name="166"><span class="lineNum">     166 </span>            : }</a>
+<a name="167"><span class="lineNum">     167 </span>            : </a>
+<a name="168"><span class="lineNum">     168 </span><span class="lineCov">    3257741 : void LayerImplSelect::CancelTimer(TimerCompleteCallback onComplete, void * appState)</span></a>
+<a name="169"><span class="lineNum">     169 </span>            : {</a>
+<a name="170"><span class="lineNum">     170 </span><span class="lineCov">    3257741 :     VerifyOrReturn(mLayerState.IsInitialized());</span></a>
+<a name="171"><span class="lineNum">     171 </span>            : </a>
+<a name="172"><span class="lineNum">     172 </span><span class="lineCov">    3257741 :     TimerList::Node * timer = mTimerList.Remove(onComplete, appState);</span></a>
+<a name="173"><span class="lineNum">     173 </span><span class="lineCov">    3257741 :     if (timer == nullptr)</span></a>
+<a name="174"><span class="lineNum">     174 </span>            :     {</a>
+<a name="175"><span class="lineNum">     175 </span>            :         // The timer was not in our &quot;will fire in the future&quot; list, but it might</a>
+<a name="176"><span class="lineNum">     176 </span>            :         // be in the &quot;we're about to fire these&quot; chunk we already grabbed from</a>
+<a name="177"><span class="lineNum">     177 </span>            :         // that list.  Check for it there too, and if found there we still want</a>
+<a name="178"><span class="lineNum">     178 </span>            :         // to cancel it.</a>
+<a name="179"><span class="lineNum">     179 </span><span class="lineCov">      45254 :         timer = mExpiredTimers.Remove(onComplete, appState);</span></a>
+<a name="180"><span class="lineNum">     180 </span>            :     }</a>
+<a name="181"><span class="lineNum">     181 </span><span class="lineCov">    3257741 :     VerifyOrReturn(timer != nullptr);</span></a>
+<a name="182"><span class="lineNum">     182 </span>            : </a>
+<a name="183"><span class="lineNum">     183 </span>            : #if CHIP_SYSTEM_CONFIG_USE_DISPATCH</a>
+<a name="184"><span class="lineNum">     184 </span>            :     if (timer-&gt;mTimerSource != nullptr)</a>
+<a name="185"><span class="lineNum">     185 </span>            :     {</a>
+<a name="186"><span class="lineNum">     186 </span>            :         dispatch_source_cancel(timer-&gt;mTimerSource);</a>
+<a name="187"><span class="lineNum">     187 </span>            :         dispatch_release(timer-&gt;mTimerSource);</a>
+<a name="188"><span class="lineNum">     188 </span>            :     }</a>
+<a name="189"><span class="lineNum">     189 </span>            : #endif</a>
+<a name="190"><span class="lineNum">     190 </span>            : </a>
+<a name="191"><span class="lineNum">     191 </span><span class="lineCov">    3212505 :     mTimerPool.Release(timer);</span></a>
+<a name="192"><span class="lineNum">     192 </span><span class="lineCov">    3212505 :     Signal();</span></a>
+<a name="193"><span class="lineNum">     193 </span>            : }</a>
+<a name="194"><span class="lineNum">     194 </span>            : </a>
+<a name="195"><span class="lineNum">     195 </span><span class="lineCov">      14968 : CHIP_ERROR LayerImplSelect::ScheduleWork(TimerCompleteCallback onComplete, void * appState)</span></a>
+<a name="196"><span class="lineNum">     196 </span>            : {</a>
+<a name="197"><span class="lineNum">     197 </span><span class="lineCov">      14968 :     VerifyOrReturnError(mLayerState.IsInitialized(), CHIP_ERROR_INCORRECT_STATE);</span></a>
+<a name="198"><span class="lineNum">     198 </span>            : </a>
+<a name="199"><span class="lineNum">     199 </span>            : #if CHIP_SYSTEM_CONFIG_USE_DISPATCH</a>
+<a name="200"><span class="lineNum">     200 </span>            :     dispatch_queue_t dispatchQueue = GetDispatchQueue();</a>
+<a name="201"><span class="lineNum">     201 </span>            :     if (dispatchQueue)</a>
+<a name="202"><span class="lineNum">     202 </span>            :     {</a>
+<a name="203"><span class="lineNum">     203 </span>            :         dispatch_async(dispatchQueue, ^{</a>
+<a name="204"><span class="lineNum">     204 </span>            :             onComplete(this, appState);</a>
+<a name="205"><span class="lineNum">     205 </span>            :         });</a>
+<a name="206"><span class="lineNum">     206 </span>            :         return CHIP_NO_ERROR;</a>
+<a name="207"><span class="lineNum">     207 </span>            :     }</a>
+<a name="208"><span class="lineNum">     208 </span>            : #endif // CHIP_SYSTEM_CONFIG_USE_DISPATCH</a>
+<a name="209"><span class="lineNum">     209 </span>            : </a>
+<a name="210"><span class="lineNum">     210 </span>            :     // Ideally we would not use a timer here at all, but if we try to just</a>
+<a name="211"><span class="lineNum">     211 </span>            :     // ScheduleLambda the lambda needs to capture the following:</a>
+<a name="212"><span class="lineNum">     212 </span>            :     // 1) onComplete</a>
+<a name="213"><span class="lineNum">     213 </span>            :     // 2) appState</a>
+<a name="214"><span class="lineNum">     214 </span>            :     // 3) The `this` pointer, because onComplete needs to be passed a pointer to</a>
+<a name="215"><span class="lineNum">     215 </span>            :     //    the System::Layer.</a>
+<a name="216"><span class="lineNum">     216 </span>            :     //</a>
+<a name="217"><span class="lineNum">     217 </span>            :     // On a 64-bit system that's 24 bytes, but lambdas passed to ScheduleLambda</a>
+<a name="218"><span class="lineNum">     218 </span>            :     // are capped at CHIP_CONFIG_LAMBDA_EVENT_SIZE which is 16 bytes.</a>
+<a name="219"><span class="lineNum">     219 </span>            :     //</a>
+<a name="220"><span class="lineNum">     220 </span>            :     // So for now use a timer as a poor-man's closure that captures `this` and</a>
+<a name="221"><span class="lineNum">     221 </span>            :     // onComplete and appState in a single pointer, so we fit inside the size</a>
+<a name="222"><span class="lineNum">     222 </span>            :     // limit.</a>
+<a name="223"><span class="lineNum">     223 </span>            :     //</a>
+<a name="224"><span class="lineNum">     224 </span>            :     // TODO: We could do something here where we compile-time condition on the</a>
+<a name="225"><span class="lineNum">     225 </span>            :     // sizes of things and use a direct ScheduleLambda if it would fit and this</a>
+<a name="226"><span class="lineNum">     226 </span>            :     // setup otherwise.</a>
+<a name="227"><span class="lineNum">     227 </span>            :     //</a>
+<a name="228"><span class="lineNum">     228 </span>            :     // TODO: But also, unit tests seem to do SystemLayer::ScheduleWork without</a>
+<a name="229"><span class="lineNum">     229 </span>            :     // actually running a useful event loop (in the PlatformManager sense),</a>
+<a name="230"><span class="lineNum">     230 </span>            :     // which breaks if we use ScheduleLambda here, since that does rely on the</a>
+<a name="231"><span class="lineNum">     231 </span>            :     // PlatformManager event loop. So for now, keep scheduling an expires-ASAP</a>
+<a name="232"><span class="lineNum">     232 </span>            :     // timer, but just make sure we don't cancel existing timers with the same</a>
+<a name="233"><span class="lineNum">     233 </span>            :     // callback and appState, so ScheduleWork invocations don't stomp on each</a>
+<a name="234"><span class="lineNum">     234 </span>            :     // other.</a>
+<a name="235"><span class="lineNum">     235 </span><span class="lineCov">      14968 :     TimerList::Node * timer = mTimerPool.Create(*this, SystemClock().GetMonotonicTimestamp(), onComplete, appState);</span></a>
+<a name="236"><span class="lineNum">     236 </span><span class="lineCov">      14968 :     VerifyOrReturnError(timer != nullptr, CHIP_ERROR_NO_MEMORY);</span></a>
+<a name="237"><span class="lineNum">     237 </span>            : </a>
+<a name="238"><span class="lineNum">     238 </span><span class="lineCov">      14968 :     if (mTimerList.Add(timer) == timer)</span></a>
+<a name="239"><span class="lineNum">     239 </span>            :     {</a>
+<a name="240"><span class="lineNum">     240 </span>            :         // The new timer is the earliest, so the time until the next event has probably changed.</a>
+<a name="241"><span class="lineNum">     241 </span><span class="lineCov">       9157 :         Signal();</span></a>
+<a name="242"><span class="lineNum">     242 </span>            :     }</a>
+<a name="243"><span class="lineNum">     243 </span><span class="lineCov">      14968 :     return CHIP_NO_ERROR;</span></a>
+<a name="244"><span class="lineNum">     244 </span>            : }</a>
+<a name="245"><span class="lineNum">     245 </span>            : </a>
+<a name="246"><span class="lineNum">     246 </span><span class="lineCov">        132 : CHIP_ERROR LayerImplSelect::StartWatchingSocket(int fd, SocketWatchToken * tokenOut)</span></a>
+<a name="247"><span class="lineNum">     247 </span>            : {</a>
+<a name="248"><span class="lineNum">     248 </span>            :     // Find a free slot.</a>
+<a name="249"><span class="lineNum">     249 </span><span class="lineCov">        132 :     SocketWatch * watch = nullptr;</span></a>
+<a name="250"><span class="lineNum">     250 </span><span class="lineCov">       8580 :     for (auto &amp; w : mSocketWatchPool)</span></a>
+<a name="251"><span class="lineNum">     251 </span>            :     {</a>
+<a name="252"><span class="lineNum">     252 </span><span class="lineCov">       8448 :         if (w.mFD == fd)</span></a>
+<a name="253"><span class="lineNum">     253 </span>            :         {</a>
+<a name="254"><span class="lineNum">     254 </span>            :             // Duplicate registration is an error.</a>
+<a name="255"><span class="lineNum">     255 </span><span class="lineNoCov">          0 :             return CHIP_ERROR_INVALID_ARGUMENT;</span></a>
+<a name="256"><span class="lineNum">     256 </span>            :         }</a>
+<a name="257"><span class="lineNum">     257 </span><span class="lineCov">       8448 :         if ((w.mFD == kInvalidFd) &amp;&amp; (watch == nullptr))</span></a>
+<a name="258"><span class="lineNum">     258 </span>            :         {</a>
+<a name="259"><span class="lineNum">     259 </span><span class="lineCov">        132 :             watch = &amp;w;</span></a>
+<a name="260"><span class="lineNum">     260 </span>            :         }</a>
+<a name="261"><span class="lineNum">     261 </span>            :     }</a>
+<a name="262"><span class="lineNum">     262 </span><span class="lineCov">        132 :     VerifyOrReturnError(watch != nullptr, CHIP_ERROR_ENDPOINT_POOL_FULL);</span></a>
+<a name="263"><span class="lineNum">     263 </span>            : </a>
+<a name="264"><span class="lineNum">     264 </span><span class="lineCov">        132 :     watch-&gt;mFD = fd;</span></a>
+<a name="265"><span class="lineNum">     265 </span>            : </a>
+<a name="266"><span class="lineNum">     266 </span><span class="lineCov">        132 :     *tokenOut = reinterpret_cast&lt;SocketWatchToken&gt;(watch);</span></a>
+<a name="267"><span class="lineNum">     267 </span><span class="lineCov">        132 :     return CHIP_NO_ERROR;</span></a>
+<a name="268"><span class="lineNum">     268 </span>            : }</a>
+<a name="269"><span class="lineNum">     269 </span>            : </a>
+<a name="270"><span class="lineNum">     270 </span><span class="lineCov">        131 : CHIP_ERROR LayerImplSelect::SetCallback(SocketWatchToken token, SocketWatchCallback callback, intptr_t data)</span></a>
+<a name="271"><span class="lineNum">     271 </span>            : {</a>
+<a name="272"><span class="lineNum">     272 </span><span class="lineCov">        131 :     SocketWatch * watch = reinterpret_cast&lt;SocketWatch *&gt;(token);</span></a>
+<a name="273"><span class="lineNum">     273 </span><span class="lineCov">        131 :     VerifyOrReturnError(watch != nullptr, CHIP_ERROR_INVALID_ARGUMENT);</span></a>
+<a name="274"><span class="lineNum">     274 </span>            : </a>
+<a name="275"><span class="lineNum">     275 </span><span class="lineCov">        131 :     watch-&gt;mCallback     = callback;</span></a>
+<a name="276"><span class="lineNum">     276 </span><span class="lineCov">        131 :     watch-&gt;mCallbackData = data;</span></a>
+<a name="277"><span class="lineNum">     277 </span><span class="lineCov">        131 :     return CHIP_NO_ERROR;</span></a>
+<a name="278"><span class="lineNum">     278 </span>            : }</a>
+<a name="279"><span class="lineNum">     279 </span>            : </a>
+<a name="280"><span class="lineNum">     280 </span><span class="lineCov">        131 : CHIP_ERROR LayerImplSelect::RequestCallbackOnPendingRead(SocketWatchToken token)</span></a>
+<a name="281"><span class="lineNum">     281 </span>            : {</a>
+<a name="282"><span class="lineNum">     282 </span><span class="lineCov">        131 :     SocketWatch * watch = reinterpret_cast&lt;SocketWatch *&gt;(token);</span></a>
+<a name="283"><span class="lineNum">     283 </span><span class="lineCov">        131 :     VerifyOrReturnError(watch != nullptr, CHIP_ERROR_INVALID_ARGUMENT);</span></a>
+<a name="284"><span class="lineNum">     284 </span>            : </a>
+<a name="285"><span class="lineNum">     285 </span><span class="lineCov">        131 :     watch-&gt;mPendingIO.Set(SocketEventFlags::kRead);</span></a>
+<a name="286"><span class="lineNum">     286 </span>            : </a>
+<a name="287"><span class="lineNum">     287 </span>            : #if CHIP_SYSTEM_CONFIG_USE_DISPATCH</a>
+<a name="288"><span class="lineNum">     288 </span>            :     if (watch-&gt;mRdSource == nullptr)</a>
+<a name="289"><span class="lineNum">     289 </span>            :     {</a>
+<a name="290"><span class="lineNum">     290 </span>            :         // First time requesting callback for read events: install a dispatch source</a>
+<a name="291"><span class="lineNum">     291 </span>            :         dispatch_queue_t dispatchQueue = GetDispatchQueue();</a>
+<a name="292"><span class="lineNum">     292 </span>            :         if (dispatchQueue == nullptr)</a>
+<a name="293"><span class="lineNum">     293 </span>            :         {</a>
+<a name="294"><span class="lineNum">     294 </span>            :             // Note: if no dispatch queue is available, callbacks most probably will not work,</a>
+<a name="295"><span class="lineNum">     295 </span>            :             //       unless, as in some tests from a test-specific local loop,</a>
+<a name="296"><span class="lineNum">     296 </span>            :             //       the select based event handling (Prepare/WaitFor/HandleEvents) is invoked.</a>
+<a name="297"><span class="lineNum">     297 </span>            :             ChipLogError(DeviceLayer,</a>
+<a name="298"><span class="lineNum">     298 </span>            :                          &quot;RequestCallbackOnPendingRead with no dispatch queue: callback may not work (might be ok in tests)&quot;);</a>
+<a name="299"><span class="lineNum">     299 </span>            :         }</a>
+<a name="300"><span class="lineNum">     300 </span>            :         else</a>
+<a name="301"><span class="lineNum">     301 </span>            :         {</a>
+<a name="302"><span class="lineNum">     302 </span>            :             watch-&gt;mRdSource =</a>
+<a name="303"><span class="lineNum">     303 </span>            :                 dispatch_source_create(DISPATCH_SOURCE_TYPE_READ, static_cast&lt;uintptr_t&gt;(watch-&gt;mFD), 0, dispatchQueue);</a>
+<a name="304"><span class="lineNum">     304 </span>            :             ReturnErrorCodeIf(watch-&gt;mRdSource == nullptr, CHIP_ERROR_NO_MEMORY);</a>
+<a name="305"><span class="lineNum">     305 </span>            :             dispatch_source_set_event_handler(watch-&gt;mRdSource, ^{</a>
+<a name="306"><span class="lineNum">     306 </span>            :                 if (watch-&gt;mPendingIO.Has(SocketEventFlags::kRead) &amp;&amp; watch-&gt;mCallback != nullptr)</a>
+<a name="307"><span class="lineNum">     307 </span>            :                 {</a>
+<a name="308"><span class="lineNum">     308 </span>            :                     SocketEvents events;</a>
+<a name="309"><span class="lineNum">     309 </span>            :                     events.Set(SocketEventFlags::kRead);</a>
+<a name="310"><span class="lineNum">     310 </span>            :                     watch-&gt;mCallback(events, watch-&gt;mCallbackData);</a>
+<a name="311"><span class="lineNum">     311 </span>            :                 }</a>
+<a name="312"><span class="lineNum">     312 </span>            :             });</a>
+<a name="313"><span class="lineNum">     313 </span>            :             // only now we are sure the source exists and can become active</a>
+<a name="314"><span class="lineNum">     314 </span>            :             dispatch_activate(watch-&gt;mRdSource);</a>
+<a name="315"><span class="lineNum">     315 </span>            :         }</a>
+<a name="316"><span class="lineNum">     316 </span>            :     }</a>
+<a name="317"><span class="lineNum">     317 </span>            : #endif // CHIP_SYSTEM_CONFIG_USE_DISPATCH</a>
+<a name="318"><span class="lineNum">     318 </span>            : </a>
+<a name="319"><span class="lineNum">     319 </span><span class="lineCov">        131 :     return CHIP_NO_ERROR;</span></a>
+<a name="320"><span class="lineNum">     320 </span>            : }</a>
+<a name="321"><span class="lineNum">     321 </span>            : </a>
+<a name="322"><span class="lineNum">     322 </span><span class="lineCov">          9 : CHIP_ERROR LayerImplSelect::RequestCallbackOnPendingWrite(SocketWatchToken token)</span></a>
+<a name="323"><span class="lineNum">     323 </span>            : {</a>
+<a name="324"><span class="lineNum">     324 </span><span class="lineCov">          9 :     SocketWatch * watch = reinterpret_cast&lt;SocketWatch *&gt;(token);</span></a>
+<a name="325"><span class="lineNum">     325 </span><span class="lineCov">          9 :     VerifyOrReturnError(watch != nullptr, CHIP_ERROR_INVALID_ARGUMENT);</span></a>
+<a name="326"><span class="lineNum">     326 </span>            : </a>
+<a name="327"><span class="lineNum">     327 </span><span class="lineCov">          9 :     watch-&gt;mPendingIO.Set(SocketEventFlags::kWrite);</span></a>
+<a name="328"><span class="lineNum">     328 </span>            : </a>
+<a name="329"><span class="lineNum">     329 </span>            : #if CHIP_SYSTEM_CONFIG_USE_DISPATCH</a>
+<a name="330"><span class="lineNum">     330 </span>            :     if (watch-&gt;mWrSource == nullptr)</a>
+<a name="331"><span class="lineNum">     331 </span>            :     {</a>
+<a name="332"><span class="lineNum">     332 </span>            :         // First time requesting callback for read events: install a dispatch source</a>
+<a name="333"><span class="lineNum">     333 </span>            :         dispatch_queue_t dispatchQueue = GetDispatchQueue();</a>
+<a name="334"><span class="lineNum">     334 </span>            :         if (dispatchQueue == nullptr)</a>
+<a name="335"><span class="lineNum">     335 </span>            :         {</a>
+<a name="336"><span class="lineNum">     336 </span>            :             // Note: if no dispatch queue is available, callbacks most probably will not work,</a>
+<a name="337"><span class="lineNum">     337 </span>            :             //       unless, as in some tests from a test-specific local loop,</a>
+<a name="338"><span class="lineNum">     338 </span>            :             //       the select based event handling (Prepare/WaitFor/HandleEvents) is invoked.</a>
+<a name="339"><span class="lineNum">     339 </span>            :             ChipLogError(DeviceLayer,</a>
+<a name="340"><span class="lineNum">     340 </span>            :                          &quot;RequestCallbackOnPendingWrite with no dispatch queue: callback may not work (might be ok in tests)&quot;);</a>
+<a name="341"><span class="lineNum">     341 </span>            :         }</a>
+<a name="342"><span class="lineNum">     342 </span>            :         else</a>
+<a name="343"><span class="lineNum">     343 </span>            :         {</a>
+<a name="344"><span class="lineNum">     344 </span>            :             watch-&gt;mWrSource =</a>
+<a name="345"><span class="lineNum">     345 </span>            :                 dispatch_source_create(DISPATCH_SOURCE_TYPE_WRITE, static_cast&lt;uintptr_t&gt;(watch-&gt;mFD), 0, dispatchQueue);</a>
+<a name="346"><span class="lineNum">     346 </span>            :             ReturnErrorCodeIf(watch-&gt;mWrSource == nullptr, CHIP_ERROR_NO_MEMORY);</a>
+<a name="347"><span class="lineNum">     347 </span>            :             dispatch_source_set_event_handler(watch-&gt;mWrSource, ^{</a>
+<a name="348"><span class="lineNum">     348 </span>            :                 if (watch-&gt;mPendingIO.Has(SocketEventFlags::kWrite) &amp;&amp; watch-&gt;mCallback != nullptr)</a>
+<a name="349"><span class="lineNum">     349 </span>            :                 {</a>
+<a name="350"><span class="lineNum">     350 </span>            :                     SocketEvents events;</a>
+<a name="351"><span class="lineNum">     351 </span>            :                     events.Set(SocketEventFlags::kWrite);</a>
+<a name="352"><span class="lineNum">     352 </span>            :                     watch-&gt;mCallback(events, watch-&gt;mCallbackData);</a>
+<a name="353"><span class="lineNum">     353 </span>            :                 }</a>
+<a name="354"><span class="lineNum">     354 </span>            :             });</a>
+<a name="355"><span class="lineNum">     355 </span>            :             // only now we are sure the source exists and can become active</a>
+<a name="356"><span class="lineNum">     356 </span>            :             watch-&gt;mPendingIO.Set(SocketEventFlags::kWrite);</a>
+<a name="357"><span class="lineNum">     357 </span>            :             dispatch_activate(watch-&gt;mWrSource);</a>
+<a name="358"><span class="lineNum">     358 </span>            :         }</a>
+<a name="359"><span class="lineNum">     359 </span>            :     }</a>
+<a name="360"><span class="lineNum">     360 </span>            : #endif // CHIP_SYSTEM_CONFIG_USE_DISPATCH</a>
+<a name="361"><span class="lineNum">     361 </span>            : </a>
+<a name="362"><span class="lineNum">     362 </span><span class="lineCov">          9 :     return CHIP_NO_ERROR;</span></a>
+<a name="363"><span class="lineNum">     363 </span>            : }</a>
+<a name="364"><span class="lineNum">     364 </span>            : </a>
+<a name="365"><span class="lineNum">     365 </span><span class="lineCov">          3 : CHIP_ERROR LayerImplSelect::ClearCallbackOnPendingRead(SocketWatchToken token)</span></a>
+<a name="366"><span class="lineNum">     366 </span>            : {</a>
+<a name="367"><span class="lineNum">     367 </span><span class="lineCov">          3 :     SocketWatch * watch = reinterpret_cast&lt;SocketWatch *&gt;(token);</span></a>
+<a name="368"><span class="lineNum">     368 </span><span class="lineCov">          3 :     VerifyOrReturnError(watch != nullptr, CHIP_ERROR_INVALID_ARGUMENT);</span></a>
+<a name="369"><span class="lineNum">     369 </span>            : </a>
+<a name="370"><span class="lineNum">     370 </span><span class="lineCov">          3 :     watch-&gt;mPendingIO.Clear(SocketEventFlags::kRead);</span></a>
+<a name="371"><span class="lineNum">     371 </span>            : </a>
+<a name="372"><span class="lineNum">     372 </span><span class="lineCov">          3 :     return CHIP_NO_ERROR;</span></a>
+<a name="373"><span class="lineNum">     373 </span>            : }</a>
+<a name="374"><span class="lineNum">     374 </span>            : </a>
+<a name="375"><span class="lineNum">     375 </span><span class="lineCov">          3 : CHIP_ERROR LayerImplSelect::ClearCallbackOnPendingWrite(SocketWatchToken token)</span></a>
+<a name="376"><span class="lineNum">     376 </span>            : {</a>
+<a name="377"><span class="lineNum">     377 </span><span class="lineCov">          3 :     SocketWatch * watch = reinterpret_cast&lt;SocketWatch *&gt;(token);</span></a>
+<a name="378"><span class="lineNum">     378 </span><span class="lineCov">          3 :     VerifyOrReturnError(watch != nullptr, CHIP_ERROR_INVALID_ARGUMENT);</span></a>
+<a name="379"><span class="lineNum">     379 </span>            : </a>
+<a name="380"><span class="lineNum">     380 </span><span class="lineCov">          3 :     watch-&gt;mPendingIO.Clear(SocketEventFlags::kWrite);</span></a>
+<a name="381"><span class="lineNum">     381 </span>            : </a>
+<a name="382"><span class="lineNum">     382 </span><span class="lineCov">          3 :     return CHIP_NO_ERROR;</span></a>
+<a name="383"><span class="lineNum">     383 </span>            : }</a>
+<a name="384"><span class="lineNum">     384 </span>            : </a>
+<a name="385"><span class="lineNum">     385 </span><span class="lineCov">        132 : CHIP_ERROR LayerImplSelect::StopWatchingSocket(SocketWatchToken * tokenInOut)</span></a>
+<a name="386"><span class="lineNum">     386 </span>            : {</a>
+<a name="387"><span class="lineNum">     387 </span><span class="lineCov">        132 :     SocketWatch * watch = reinterpret_cast&lt;SocketWatch *&gt;(*tokenInOut);</span></a>
+<a name="388"><span class="lineNum">     388 </span><span class="lineCov">        132 :     *tokenInOut         = InvalidSocketWatchToken();</span></a>
+<a name="389"><span class="lineNum">     389 </span>            : </a>
+<a name="390"><span class="lineNum">     390 </span><span class="lineCov">        132 :     VerifyOrReturnError(watch != nullptr, CHIP_ERROR_INVALID_ARGUMENT);</span></a>
+<a name="391"><span class="lineNum">     391 </span><span class="lineCov">        132 :     VerifyOrReturnError(watch-&gt;mFD &gt;= 0, CHIP_ERROR_INCORRECT_STATE);</span></a>
+<a name="392"><span class="lineNum">     392 </span>            : </a>
+<a name="393"><span class="lineNum">     393 </span>            : #if CHIP_SYSTEM_CONFIG_USE_DISPATCH</a>
+<a name="394"><span class="lineNum">     394 </span>            :     watch-&gt;DisableAndClear();</a>
+<a name="395"><span class="lineNum">     395 </span>            : #else</a>
+<a name="396"><span class="lineNum">     396 </span><span class="lineCov">        132 :     watch-&gt;Clear();</span></a>
+<a name="397"><span class="lineNum">     397 </span>            : </a>
+<a name="398"><span class="lineNum">     398 </span>            :     // Wake the thread calling select so that it stops selecting on the socket.</a>
+<a name="399"><span class="lineNum">     399 </span><span class="lineCov">        132 :     Signal();</span></a>
+<a name="400"><span class="lineNum">     400 </span>            : #endif</a>
+<a name="401"><span class="lineNum">     401 </span>            : </a>
+<a name="402"><span class="lineNum">     402 </span><span class="lineCov">        132 :     return CHIP_NO_ERROR;</span></a>
+<a name="403"><span class="lineNum">     403 </span>            : }</a>
+<a name="404"><span class="lineNum">     404 </span>            : </a>
+<a name="405"><span class="lineNum">     405 </span>            : /**</a>
+<a name="406"><span class="lineNum">     406 </span>            :  *  Set the read, write or exception bit flags for the specified socket based on its status in</a>
+<a name="407"><span class="lineNum">     407 </span>            :  *  the corresponding file descriptor sets.</a>
+<a name="408"><span class="lineNum">     408 </span>            :  *</a>
+<a name="409"><span class="lineNum">     409 </span>            :  *  @param[in]    socket    The file descriptor for which the bit flags are being set.</a>
+<a name="410"><span class="lineNum">     410 </span>            :  *</a>
+<a name="411"><span class="lineNum">     411 </span>            :  *  @param[in]    readfds   A pointer to the set of readable file descriptors.</a>
+<a name="412"><span class="lineNum">     412 </span>            :  *</a>
+<a name="413"><span class="lineNum">     413 </span>            :  *  @param[in]    writefds  A pointer to the set of writable file descriptors.</a>
+<a name="414"><span class="lineNum">     414 </span>            :  *</a>
+<a name="415"><span class="lineNum">     415 </span>            :  *  @param[in]    exceptfds  A pointer to the set of file descriptors with errors.</a>
+<a name="416"><span class="lineNum">     416 </span>            :  */</a>
+<a name="417"><span class="lineNum">     417 </span><span class="lineCov">    3174264 : SocketEvents LayerImplSelect::SocketEventsFromFDs(int socket, const fd_set &amp; readfds, const fd_set &amp; writefds,</span></a>
+<a name="418"><span class="lineNum">     418 </span>            :                                                   const fd_set &amp; exceptfds)</a>
+<a name="419"><span class="lineNum">     419 </span>            : {</a>
+<a name="420"><span class="lineNum">     420 </span><span class="lineCov">    3174264 :     SocketEvents res;</span></a>
+<a name="421"><span class="lineNum">     421 </span>            : </a>
+<a name="422"><span class="lineNum">     422 </span><span class="lineCov">    3174264 :     if (socket &gt;= 0)</span></a>
+<a name="423"><span class="lineNum">     423 </span>            :     {</a>
+<a name="424"><span class="lineNum">     424 </span>            :         // POSIX does not define the fd_set parameter of FD_ISSET() as const, even though it isn't modified.</a>
+<a name="425"><span class="lineNum">     425 </span><span class="lineCov">    3174264 :         if (FD_ISSET(socket, const_cast&lt;fd_set *&gt;(&amp;readfds)))</span></a>
+<a name="426"><span class="lineNum">     426 </span><span class="lineCov">    3174104 :             res.Set(SocketEventFlags::kRead);</span></a>
+<a name="427"><span class="lineNum">     427 </span><span class="lineCov">    3174264 :         if (FD_ISSET(socket, const_cast&lt;fd_set *&gt;(&amp;writefds)))</span></a>
+<a name="428"><span class="lineNum">     428 </span><span class="lineCov">          3 :             res.Set(SocketEventFlags::kWrite);</span></a>
+<a name="429"><span class="lineNum">     429 </span><span class="lineCov">    3174264 :         if (FD_ISSET(socket, const_cast&lt;fd_set *&gt;(&amp;exceptfds)))</span></a>
+<a name="430"><span class="lineNum">     430 </span><span class="lineNoCov">          0 :             res.Set(SocketEventFlags::kExcept);</span></a>
+<a name="431"><span class="lineNum">     431 </span>            :     }</a>
+<a name="432"><span class="lineNum">     432 </span>            : </a>
+<a name="433"><span class="lineNum">     433 </span><span class="lineCov">    3174264 :     return res;</span></a>
+<a name="434"><span class="lineNum">     434 </span>            : }</a>
+<a name="435"><span class="lineNum">     435 </span>            : </a>
+<a name="436"><span class="lineNum">     436 </span><span class="lineCov">    3174084 : void LayerImplSelect::PrepareEvents()</span></a>
+<a name="437"><span class="lineNum">     437 </span>            : {</a>
+<a name="438"><span class="lineNum">     438 </span><span class="lineCov">    3174084 :     assertChipStackLockedByCurrentThread();</span></a>
+<a name="439"><span class="lineNum">     439 </span>            : </a>
+<a name="440"><span class="lineNum">     440 </span><span class="lineCov">    3174084 :     const Clock::Timestamp currentTime = SystemClock().GetMonotonicTimestamp();</span></a>
+<a name="441"><span class="lineNum">     441 </span><span class="lineCov">    3174084 :     Clock::Timestamp awakenTime        = currentTime + kDefaultMinSleepPeriod;</span></a>
+<a name="442"><span class="lineNum">     442 </span>            : </a>
+<a name="443"><span class="lineNum">     443 </span><span class="lineCov">    3174084 :     TimerList::Node * timer = mTimerList.Earliest();</span></a>
+<a name="444"><span class="lineNum">     444 </span><span class="lineCov">    3174084 :     if (timer &amp;&amp; timer-&gt;AwakenTime() &lt; awakenTime)</span></a>
+<a name="445"><span class="lineNum">     445 </span>            :     {</a>
+<a name="446"><span class="lineNum">     446 </span><span class="lineCov">    3174065 :         awakenTime = timer-&gt;AwakenTime();</span></a>
+<a name="447"><span class="lineNum">     447 </span>            :     }</a>
+<a name="448"><span class="lineNum">     448 </span>            : </a>
+<a name="449"><span class="lineNum">     449 </span><span class="lineCov">    3174084 :     const Clock::Timestamp sleepTime = (awakenTime &gt; currentTime) ? (awakenTime - currentTime) : Clock::kZero;</span></a>
+<a name="450"><span class="lineNum">     450 </span><span class="lineCov">    3174084 :     Clock::ToTimeval(sleepTime, mNextTimeout);</span></a>
+<a name="451"><span class="lineNum">     451 </span>            : </a>
+<a name="452"><span class="lineNum">     452 </span><span class="lineCov">    3174084 :     mMaxFd = -1;</span></a>
+<a name="453"><span class="lineNum">     453 </span>            : </a>
+<a name="454"><span class="lineNum">     454 </span>            :     // NOLINTBEGIN(clang-analyzer-security.insecureAPI.bzero)</a>
+<a name="455"><span class="lineNum">     455 </span>            :     //</a>
+<a name="456"><span class="lineNum">     456 </span>            :     // NOTE: darwin uses bzero to clear out FD sets. This is not a security concern.</a>
+<a name="457"><span class="lineNum">     457 </span><span class="lineCov">   53959428 :     FD_ZERO(&amp;mSelected.mReadSet);</span></a>
+<a name="458"><span class="lineNum">     458 </span><span class="lineCov">   53959428 :     FD_ZERO(&amp;mSelected.mWriteSet);</span></a>
+<a name="459"><span class="lineNum">     459 </span><span class="lineCov">   53959428 :     FD_ZERO(&amp;mSelected.mErrorSet);</span></a>
+<a name="460"><span class="lineNum">     460 </span>            :     // NOLINTEND(clang-analyzer-security.insecureAPI.bzero)</a>
+<a name="461"><span class="lineNum">     461 </span>            : </a>
+<a name="462"><span class="lineNum">     462 </span><span class="lineCov">  206315460 :     for (auto &amp; w : mSocketWatchPool)</span></a>
+<a name="463"><span class="lineNum">     463 </span>            :     {</a>
+<a name="464"><span class="lineNum">     464 </span><span class="lineCov">  203141376 :         if (w.mFD != kInvalidFd)</span></a>
+<a name="465"><span class="lineNum">     465 </span>            :         {</a>
+<a name="466"><span class="lineNum">     466 </span><span class="lineCov">    3174261 :             if (mMaxFd &lt; w.mFD)</span></a>
+<a name="467"><span class="lineNum">     467 </span>            :             {</a>
+<a name="468"><span class="lineNum">     468 </span><span class="lineCov">    3174261 :                 mMaxFd = w.mFD;</span></a>
+<a name="469"><span class="lineNum">     469 </span>            :             }</a>
+<a name="470"><span class="lineNum">     470 </span><span class="lineCov">    3174261 :             if (w.mPendingIO.Has(SocketEventFlags::kRead))</span></a>
+<a name="471"><span class="lineNum">     471 </span>            :             {</a>
+<a name="472"><span class="lineNum">     472 </span><span class="lineCov">    3174258 :                 FD_SET(w.mFD, &amp;mSelected.mReadSet);</span></a>
+<a name="473"><span class="lineNum">     473 </span>            :             }</a>
+<a name="474"><span class="lineNum">     474 </span><span class="lineCov">    3174261 :             if (w.mPendingIO.Has(SocketEventFlags::kWrite))</span></a>
+<a name="475"><span class="lineNum">     475 </span>            :             {</a>
+<a name="476"><span class="lineNum">     476 </span><span class="lineCov">          3 :                 FD_SET(w.mFD, &amp;mSelected.mWriteSet);</span></a>
+<a name="477"><span class="lineNum">     477 </span>            :             }</a>
+<a name="478"><span class="lineNum">     478 </span>            :         }</a>
+<a name="479"><span class="lineNum">     479 </span>            :     }</a>
+<a name="480"><span class="lineNum">     480 </span><span class="lineCov">    3174084 : }</span></a>
+<a name="481"><span class="lineNum">     481 </span>            : </a>
+<a name="482"><span class="lineNum">     482 </span><span class="lineCov">    3174084 : void LayerImplSelect::WaitForEvents()</span></a>
+<a name="483"><span class="lineNum">     483 </span>            : {</a>
+<a name="484"><span class="lineNum">     484 </span><span class="lineCov">    3174084 :     mSelectResult = select(mMaxFd + 1, &amp;mSelected.mReadSet, &amp;mSelected.mWriteSet, &amp;mSelected.mErrorSet, &amp;mNextTimeout);</span></a>
+<a name="485"><span class="lineNum">     485 </span><span class="lineCov">    3174084 : }</span></a>
+<a name="486"><span class="lineNum">     486 </span>            : </a>
+<a name="487"><span class="lineNum">     487 </span><span class="lineCov">    3174084 : void LayerImplSelect::HandleEvents()</span></a>
+<a name="488"><span class="lineNum">     488 </span>            : {</a>
+<a name="489"><span class="lineNum">     489 </span><span class="lineCov">    3174084 :     assertChipStackLockedByCurrentThread();</span></a>
+<a name="490"><span class="lineNum">     490 </span>            : </a>
+<a name="491"><span class="lineNum">     491 </span><span class="lineCov">    3174084 :     if (!IsSelectResultValid())</span></a>
+<a name="492"><span class="lineNum">     492 </span>            :     {</a>
+<a name="493"><span class="lineNum">     493 </span><span class="lineNoCov">          0 :         ChipLogError(DeviceLayer, &quot;Select failed: %&quot; CHIP_ERROR_FORMAT, CHIP_ERROR_POSIX(errno).Format());</span></a>
+<a name="494"><span class="lineNum">     494 </span><span class="lineNoCov">          0 :         return;</span></a>
+<a name="495"><span class="lineNum">     495 </span>            :     }</a>
+<a name="496"><span class="lineNum">     496 </span>            : </a>
+<a name="497"><span class="lineNum">     497 </span>            : #if CHIP_SYSTEM_CONFIG_POSIX_LOCKING</a>
+<a name="498"><span class="lineNum">     498 </span><span class="lineCov">    3174084 :     mHandleSelectThread = pthread_self();</span></a>
+<a name="499"><span class="lineNum">     499 </span>            : #endif // CHIP_SYSTEM_CONFIG_POSIX_LOCKING</a>
+<a name="500"><span class="lineNum">     500 </span>            : </a>
+<a name="501"><span class="lineNum">     501 </span>            :     // Obtain the list of currently expired timers. Any new timers added by timer callback are NOT handled on this pass,</a>
+<a name="502"><span class="lineNum">     502 </span>            :     // since that could result in infinite handling of new timers blocking any other progress.</a>
+<a name="503"><span class="lineNum">     503 </span><span class="lineCov">    3174084 :     VerifyOrDieWithMsg(mExpiredTimers.Empty(), DeviceLayer, &quot;Re-entry into HandleEvents from a timer callback?&quot;);</span></a>
+<a name="504"><span class="lineNum">     504 </span><span class="lineCov">    3174084 :     mExpiredTimers          = mTimerList.ExtractEarlier(Clock::Timeout(1) + SystemClock().GetMonotonicTimestamp());</span></a>
+<a name="505"><span class="lineNum">     505 </span><span class="lineCov">    3174084 :     TimerList::Node * timer = nullptr;</span></a>
+<a name="506"><span class="lineNum">     506 </span><span class="lineCov">    3189356 :     while ((timer = mExpiredTimers.PopEarliest()) != nullptr)</span></a>
+<a name="507"><span class="lineNum">     507 </span>            :     {</a>
+<a name="508"><span class="lineNum">     508 </span><span class="lineCov">      15272 :         mTimerPool.Invoke(timer);</span></a>
+<a name="509"><span class="lineNum">     509 </span>            :     }</a>
+<a name="510"><span class="lineNum">     510 </span>            : </a>
+<a name="511"><span class="lineNum">     511 </span><span class="lineCov">  206315460 :     for (auto &amp; w : mSocketWatchPool)</span></a>
+<a name="512"><span class="lineNum">     512 </span>            :     {</a>
+<a name="513"><span class="lineNum">     513 </span><span class="lineCov">  203141376 :         if (w.mFD != kInvalidFd)</span></a>
+<a name="514"><span class="lineNum">     514 </span>            :         {</a>
+<a name="515"><span class="lineNum">     515 </span><span class="lineCov">    3174264 :             SocketEvents events = SocketEventsFromFDs(w.mFD, mSelected.mReadSet, mSelected.mWriteSet, mSelected.mErrorSet);</span></a>
+<a name="516"><span class="lineNum">     516 </span><span class="lineCov">    3174264 :             if (events.HasAny() &amp;&amp; w.mCallback != nullptr)</span></a>
+<a name="517"><span class="lineNum">     517 </span>            :             {</a>
+<a name="518"><span class="lineNum">     518 </span><span class="lineCov">    3174107 :                 w.mCallback(events, w.mCallbackData);</span></a>
+<a name="519"><span class="lineNum">     519 </span>            :             }</a>
+<a name="520"><span class="lineNum">     520 </span>            :         }</a>
+<a name="521"><span class="lineNum">     521 </span>            :     }</a>
+<a name="522"><span class="lineNum">     522 </span>            : </a>
+<a name="523"><span class="lineNum">     523 </span>            : #if CHIP_SYSTEM_CONFIG_POSIX_LOCKING</a>
+<a name="524"><span class="lineNum">     524 </span><span class="lineCov">    3174084 :     mHandleSelectThread = PTHREAD_NULL;</span></a>
+<a name="525"><span class="lineNum">     525 </span>            : #endif // CHIP_SYSTEM_CONFIG_POSIX_LOCKING</a>
+<a name="526"><span class="lineNum">     526 </span>            : }</a>
+<a name="527"><span class="lineNum">     527 </span>            : </a>
+<a name="528"><span class="lineNum">     528 </span>            : #if CHIP_SYSTEM_CONFIG_USE_DISPATCH</a>
+<a name="529"><span class="lineNum">     529 </span>            : void LayerImplSelect::HandleTimerComplete(TimerList::Node * timer)</a>
+<a name="530"><span class="lineNum">     530 </span>            : {</a>
+<a name="531"><span class="lineNum">     531 </span>            :     mTimerList.Remove(timer);</a>
+<a name="532"><span class="lineNum">     532 </span>            :     mTimerPool.Invoke(timer);</a>
+<a name="533"><span class="lineNum">     533 </span>            : }</a>
+<a name="534"><span class="lineNum">     534 </span>            : #endif // CHIP_SYSTEM_CONFIG_USE_DISPATCH</a>
+<a name="535"><span class="lineNum">     535 </span>            : </a>
+<a name="536"><span class="lineNum">     536 </span><span class="lineCov">       3268 : void LayerImplSelect::SocketWatch::Clear()</span></a>
+<a name="537"><span class="lineNum">     537 </span>            : {</a>
+<a name="538"><span class="lineNum">     538 </span><span class="lineCov">       3268 :     mFD = kInvalidFd;</span></a>
+<a name="539"><span class="lineNum">     539 </span><span class="lineCov">       3268 :     mPendingIO.ClearAll();</span></a>
+<a name="540"><span class="lineNum">     540 </span><span class="lineCov">       3268 :     mCallback     = nullptr;</span></a>
+<a name="541"><span class="lineNum">     541 </span><span class="lineCov">       3268 :     mCallbackData = 0;</span></a>
+<a name="542"><span class="lineNum">     542 </span>            : #if CHIP_SYSTEM_CONFIG_USE_DISPATCH</a>
+<a name="543"><span class="lineNum">     543 </span>            :     mRdSource = nullptr;</a>
+<a name="544"><span class="lineNum">     544 </span>            :     mWrSource = nullptr;</a>
+<a name="545"><span class="lineNum">     545 </span>            : #endif</a>
+<a name="546"><span class="lineNum">     546 </span><span class="lineCov">       3268 : }</span></a>
+<a name="547"><span class="lineNum">     547 </span>            : </a>
+<a name="548"><span class="lineNum">     548 </span>            : #if CHIP_SYSTEM_CONFIG_USE_DISPATCH</a>
+<a name="549"><span class="lineNum">     549 </span>            : void LayerImplSelect::SocketWatch::DisableAndClear()</a>
+<a name="550"><span class="lineNum">     550 </span>            : {</a>
+<a name="551"><span class="lineNum">     551 </span>            :     if (mRdSource)</a>
+<a name="552"><span class="lineNum">     552 </span>            :     {</a>
+<a name="553"><span class="lineNum">     553 </span>            :         dispatch_source_cancel(mRdSource);</a>
+<a name="554"><span class="lineNum">     554 </span>            :         dispatch_release(mRdSource);</a>
+<a name="555"><span class="lineNum">     555 </span>            :     }</a>
+<a name="556"><span class="lineNum">     556 </span>            :     if (mWrSource)</a>
+<a name="557"><span class="lineNum">     557 </span>            :     {</a>
+<a name="558"><span class="lineNum">     558 </span>            :         dispatch_source_cancel(mWrSource);</a>
+<a name="559"><span class="lineNum">     559 </span>            :         dispatch_release(mWrSource);</a>
+<a name="560"><span class="lineNum">     560 </span>            :     }</a>
+<a name="561"><span class="lineNum">     561 </span>            :     Clear();</a>
+<a name="562"><span class="lineNum">     562 </span>            : }</a>
+<a name="563"><span class="lineNum">     563 </span>            : #endif // CHIP_SYSTEM_CONFIG_USE_DISPATCH</a>
+<a name="564"><span class="lineNum">     564 </span>            : </a>
+<a name="565"><span class="lineNum">     565 </span>            : } // namespace System</a>
+<a name="566"><span class="lineNum">     566 </span>            : } // namespace chip</a>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.14</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>
