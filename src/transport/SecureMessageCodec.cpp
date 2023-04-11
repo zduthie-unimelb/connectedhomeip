@@ -51,6 +51,14 @@ CHIP_ERROR Encrypt(const CryptoContext & context, CryptoContext::ConstNonceView 
     uint8_t * data    = msgBuf->Start();
     uint16_t totalLen = msgBuf->TotalLength();
 
+// Skip encryption and message integrity!
+#if CHIP_CONFIG_SECURITY_FUZZ_MODE
+    #warning                                                                                                                           \
+        "Warning: CHIP_CONFIG_SECURITY_FUZZ_MODE=1 bypassing encryption!"
+        ChipLogError(
+            SecureChannel,
+            "Warning: CHIP_CONFIG_SECURITY_FUZZ_MODE=1 bypassing encryption");
+#else
     MessageAuthenticationCode mac;
     ReturnErrorOnFailure(context.Encrypt(data, totalLen, data, nonce, packetHeader, mac));
 
@@ -59,6 +67,8 @@ CHIP_ERROR Encrypt(const CryptoContext & context, CryptoContext::ConstNonceView 
 
     VerifyOrReturnError(CanCastTo<uint16_t>(totalLen + taglen), CHIP_ERROR_INTERNAL);
     msgBuf->SetDataLength(static_cast<uint16_t>(totalLen + taglen));
+
+#endif
 
     return CHIP_NO_ERROR;
 }
@@ -71,6 +81,14 @@ CHIP_ERROR Decrypt(const CryptoContext & context, CryptoContext::ConstNonceView 
     uint8_t * data = msg->Start();
     uint16_t len   = msg->DataLength();
 
+#if CHIP_CONFIG_SECURITY_FUZZ_MODE
+    #warning                                                                                                                           \
+        "Warning: CHIP_CONFIG_SECURITY_FUZZ_MODE=1 bypassing decryption!"
+        ChipLogError(
+            SecureChannel,
+            "Warning: CHIP_CONFIG_SECURITY_FUZZ_MODE=1 bypassing decryption");
+
+#else
     PacketBufferHandle origMsg;
 #if CHIP_SYSTEM_CONFIG_USE_LWIP
     /* This is a workaround for the case where PacketBuffer payload is not
@@ -94,6 +112,8 @@ CHIP_ERROR Decrypt(const CryptoContext & context, CryptoContext::ConstNonceView 
 
     uint8_t * plainText = msg->Start();
     ReturnErrorOnFailure(context.Decrypt(data, len, plainText, nonce, packetHeader, mac));
+
+#endif
 
     ReturnErrorOnFailure(payloadHeader.DecodeAndConsume(msg));
     return CHIP_NO_ERROR;

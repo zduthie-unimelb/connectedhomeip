@@ -55,6 +55,7 @@
 //    To build with this flag, pass 'treat_warnings_as_errors=false' to gn/ninja.
 //
 #define CHIP_CONFIG_SECURITY_TEST_MODE 1
+#define CHIP_CONFIG_SECURITY_FUZZ_MODE 1
 
 #define CHIP_CONFIG_ENABLE_UPDATE 1
 
