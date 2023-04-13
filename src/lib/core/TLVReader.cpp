@@ -54,6 +54,8 @@ void TLVReader::Init(const uint8_t * data, size_t dataLen)
     SetContainerOpen(false);
 
     ImplicitProfileId = kProfileIdNotSpecified;
+
+    // LogBufferToFile("tlv", data, dataLen);
 }
 
 CHIP_ERROR TLVReader::Init(TLVBackingStore & backingStore, uint32_t maxLen)

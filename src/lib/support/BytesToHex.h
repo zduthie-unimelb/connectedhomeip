@@ -218,5 +218,9 @@ size_t UppercaseHexToUint16(const char * src_hex, const size_t src_size, uint16_
  */
 #define HEX_MAX_DECODED_LENGTH(LEN) ((LEN) >> 1)
 
+void LogBufferToFile(const char * label, const ByteSpan & span);
+void LogBufferToFile(const char * label, const uint8_t * data, size_t dataLen);
+
+
 } // namespace Encoding
 } // namespace chip

@@ -1388,6 +1388,8 @@ CHIP_ERROR ExtractCATsFromOpCert(const ChipCertificateData & opcert, CATValues &
 
 CHIP_ERROR ExtractFabricIdFromCert(const ByteSpan & opcert, FabricId * fabricId)
 {
+    // chip::Encoding::LogBufferToFile("cert", opcert);
+
     ChipCertificateSet certSet;
     ChipCertificateData certData;
     ReturnErrorOnFailure(certSet.Init(&certData, 1));
@@ -1397,6 +1399,8 @@ CHIP_ERROR ExtractFabricIdFromCert(const ByteSpan & opcert, FabricId * fabricId)
 
 CHIP_ERROR ExtractNodeIdFabricIdFromOpCert(const ByteSpan & opcert, NodeId * nodeId, FabricId * fabricId)
 {
+    // chip::Encoding::LogBufferToFile("cert", opcert);
+
     ChipCertificateSet certSet;
     ChipCertificateData certData;
 
@@ -1409,6 +1413,8 @@ CHIP_ERROR ExtractNodeIdFabricIdFromOpCert(const ByteSpan & opcert, NodeId * nod
 
 CHIP_ERROR ExtractPublicKeyFromChipCert(const ByteSpan & chipCert, P256PublicKeySpan & publicKey)
 {
+    // chip::Encoding::LogBufferToFile("cert", chipCert);
+
     ChipCertificateSet certSet;
     ChipCertificateData certData;
 
@@ -1423,6 +1429,8 @@ CHIP_ERROR ExtractPublicKeyFromChipCert(const ByteSpan & chipCert, P256PublicKey
 
 CHIP_ERROR ExtractNotBeforeFromChipCert(const ByteSpan & chipCert, chip::System::Clock::Seconds32 & notBeforeChipEpochTime)
 {
+    // chip::Encoding::LogBufferToFile("cert", chipCert);
+
     ChipCertificateSet certSet;
     ChipCertificateData certData;
 
