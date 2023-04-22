@@ -263,7 +263,7 @@ void LogBufferToFile(const char * label, const uint8_t * data, size_t dataLen)
     std::string folder = std::string("./dump_") + label + "/";
     std::string filename = label + std::string("_") + GenRandomFileName(12) + ".bin";
     std::string file = folder+filename;
-    ChipLogError(Support, file.c_str());
+    ChipLogError(Support, "Logging buffer to %s", file.c_str());
     std::ofstream(folder+filename, std::ios::binary).write((char *)data, (long)dataLen);
 }
 
