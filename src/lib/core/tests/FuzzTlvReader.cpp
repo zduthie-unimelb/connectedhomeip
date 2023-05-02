@@ -1,13 +1,49 @@
 #include <cstddef>
 #include <cstdint>
 
+// #include <iostream>
+
 #include "lib/core/TLV.h"
 #include "lib/core/TLVUtilities.h"
 
+using namespace chip;
+using namespace chip::TLV;
+
 using chip::TLV::TLVReader;
 
-static CHIP_ERROR FuzzIterator(const TLVReader & aReader, size_t aDepth, void * aContext)
+// static size_t max_depth = 0;
+
+static CHIP_ERROR FuzzIterator(TLVReader & aReader, size_t aDepth, void * aContext)
 {
+    // if (aDepth > max_depth) {
+    //     if (aDepth % 10 == 0) std::cout << "New depth: " << aDepth << std::endl;
+    //     max_depth = aDepth;
+    // }
+
+    { aReader.GetLength(); }
+    { aReader.GetTag(); }
+    { aReader.GetType(); }
+    { size_t size; aReader.CountRemainingInContainer(&size); }
+    { bool v; aReader.Get(v); }
+    { int8_t v; aReader.Get(v); }
+    { int16_t v; aReader.Get(v); }
+    { int32_t v; aReader.Get(v); }
+    { int64_t v; aReader.Get(v); }
+    { uint8_t v; aReader.Get(v); }
+    { uint16_t v; aReader.Get(v); }
+    { uint32_t v; aReader.Get(v); }
+    { uint64_t v; aReader.Get(v); }
+    { double v; aReader.Get(v); }
+    { float v; aReader.Get(v); }
+    { chip::ByteSpan readerSpan; aReader.Get(readerSpan); }
+    { chip::CharSpan readerSpan; aReader.Get(readerSpan); }
+    { Optional<LocalizedStringIdentifier> readerLSID; aReader.Get(readerLSID); }
+    // enum?
+    // BitFlags
+    // BitMask
+    { uint8_t bBuf[16]; aReader.GetBytes(bBuf, sizeof(bBuf)); }
+    { char sBuf[16]; aReader.GetString(sBuf, sizeof(sBuf)); }
+
     return CHIP_NO_ERROR;
 }
 
