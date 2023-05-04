@@ -20,6 +20,11 @@
 
 #include <CommissionableInit.h>
 
+#include <chrono>
+#include <iostream>
+
+extern "C" void __gcov_dump();
+
 using namespace chip;
 using namespace chip::DeviceLayer;
 
@@ -40,6 +45,27 @@ void CleanShutdown()
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t * aData, size_t aSize)
 {
+    static auto fuzzCampaignStart = std::chrono::steady_clock::now();
+    static auto fuzzCampaignMinutes = [](){
+        char *envString = getenv("FUZZ_CAMPAIGN_MINUTES");
+
+        int minutes = (envString == NULL) ? 0 : atoi(envString);
+        std::cerr << "FUZZ_CAMPAIGN_MINUTES: " << minutes << std::endl;
+
+        return minutes;
+    } ();
+
+    // Check elapsed time
+    if (fuzzCampaignMinutes > 0) {
+        auto current = std::chrono::steady_clock::now();
+        if (std::chrono::duration_cast<std::chrono::minutes>(current - fuzzCampaignStart).count() > fuzzCampaignMinutes) {
+            // Passed scheduled end
+            std::cerr << "Stopping fuzzing after " << fuzzCampaignMinutes << " minutes" << std::endl; 
+            __gcov_dump();
+            exit(0);
+        }
+    }
+
     static bool matterStackInitialized = false;
     if (!matterStackInitialized)
     {
