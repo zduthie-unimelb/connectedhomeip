@@ -2,11 +2,14 @@
 
 ./scripts/run_in_build_env.sh "./scripts/build/build_examples.py --target linux-x64-all-clusters-no-ble-asan-libfuzzer-coverage-clang build"
 
+CHIP_ROOT="/home/ubuntu/connectedhomeip"
 COVERAGE_NAME="coverage_clusters_raw"
 OUTPUT_ROOT="$CHIP_ROOT/out/linux-x64-all-clusters-no-ble-asan-libfuzzer-coverage-clang"
 COVERAGE_ROOT="$OUTPUT_ROOT/$COVERAGE_NAME"
 
-FUZZ_CAMPAIGN_MINUTES=2 ./out/linux-x64-all-clusters-no-ble-asan-libfuzzer-coverage-clang/chip-all-clusters-app-fuzzing CORPUS2_clusters_raw SEEDS2_handshake 1> /dev/null
+find $OUTPUT_ROOT -name "*.gcda" -type f -delete
+
+ASAN_OPTIONS=external_symbolizer_path=/home/ubuntu/connectedhomeip/.environment/cipd/packages/pigweed/bin/llvm-symbolizer FUZZ_CAMPAIGN_MINUTES=30 ./out/linux-x64-all-clusters-no-ble-asan-libfuzzer-coverage-clang/chip-all-clusters-app-fuzzing CORPUS_clusters_raw SEEDS_handshake 1> /dev/null
 
 rm -rf "$OUTPUT_ROOT/obj/src/app/app-platform"
 rm -rf "$OUTPUT_ROOT/obj/src/app/common"
