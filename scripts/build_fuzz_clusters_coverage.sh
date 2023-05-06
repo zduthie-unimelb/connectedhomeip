@@ -72,7 +72,7 @@ find $OUTPUT_ROOT -name "*.gcda" -type f -delete
 # Run the fuzzing binary (with symbolizer)
 echo "Starting Fuzzing at $FUZZ_DATE"
 set +e
-ASAN_OPTIONS=external_symbolizer_path=/home/ubuntu/connectedhomeip/.environment/cipd/packages/pigweed/bin/llvm-symbolizer FUZZ_CAMPAIGN_MINUTES=$MINUTES sudo ./out/linux-x64-all-clusters-no-ble-asan-libfuzzer-coverage-clang/chip-all-clusters-app-fuzzing $CORPUS $SEEDS 1> /dev/null
+sudo ASAN_OPTIONS=external_symbolizer_path=/home/ubuntu/connectedhomeip/.environment/cipd/packages/pigweed/bin/llvm-symbolizer FUZZ_CAMPAIGN_MINUTES=$MINUTES ./out/linux-x64-all-clusters-no-ble-asan-libfuzzer-coverage-clang/chip-all-clusters-app-fuzzing $CORPUS $SEEDS 1> /dev/null
 set -e
 echo "Corpus saved to $CORPUS"
 echo "Started Fuzzing at $FUZZ_DATE"
