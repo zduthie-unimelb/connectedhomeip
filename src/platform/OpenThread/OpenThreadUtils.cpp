@@ -130,7 +130,7 @@ void LogOpenThreadStateChange(otInstance * otInst, uint32_t flags)
             meshPrefix.ToString(strBuf);
             ChipLogDetail(DeviceLayer, "   Mesh Prefix: %s/64", strBuf);
         }
-#if CHIP_CONFIG_SECURITY_TEST_MODE
+#if CHIP_CONFIG_SECURITY_TEST_MODE || CHIP_CONFIG_SECURITY_FUZZ_MODE
         {
 #if OPENTHREAD_API_VERSION >= 126
             const otNetworkKey * otKey = otThreadGetNetworkKey(otInst);
