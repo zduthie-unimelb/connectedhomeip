@@ -5,7 +5,8 @@
 
 set -e
 
-CLUSTERS_DATE="clusters_$(date '+%Y%m%d_%H%M%S')"
+FUZZ_DATE="$(date '+%Y%m%d_%H%M%S')"
+CLUSTERS_DATE="clusters_$FUZZ_DATE"
 CHIP_ROOT="/home/ubuntu/connectedhomeip"
 COVERAGE_NAME="coverage_$CLUSTERS_DATE"
 OUTPUT_ROOT="$CHIP_ROOT/out/linux-x64-all-clusters-no-ble-asan-libfuzzer-coverage-clang"
@@ -61,7 +62,6 @@ done
 
 # Create directories if required
 mkdir -p $CORPUS
-mkdir -p $SEEDS
 
 # Delete all previous 
 find $OUTPUT_ROOT -name "*.gcda" -type f -delete
@@ -70,10 +70,12 @@ find $OUTPUT_ROOT -name "*.gcda" -type f -delete
 ./scripts/run_in_build_env.sh "./scripts/build/build_examples.py --target linux-x64-all-clusters-no-ble-asan-libfuzzer-coverage-clang build"
 
 # Run the fuzzing binary (with symbolizer)
-echo "Starting Fuzzing at $(date '+%Y%m%d_%H%M%S')"
+echo "Starting Fuzzing at $FUZZ_DATE"
 set +e
 ASAN_OPTIONS=external_symbolizer_path=/home/ubuntu/connectedhomeip/.environment/cipd/packages/pigweed/bin/llvm-symbolizer FUZZ_CAMPAIGN_MINUTES=$MINUTES ./out/linux-x64-all-clusters-no-ble-asan-libfuzzer-coverage-clang/chip-all-clusters-app-fuzzing $CORPUS $SEEDS 1> /dev/null
 set -e
+echo "Corpus saved to $CORPUS"
+echo "Started Fuzzing at $FUZZ_DATE"
 echo "Finished Fuzzing at $(date '+%Y%m%d_%H%M%S')"
 
 # Remove misc support components from coverage statistics
