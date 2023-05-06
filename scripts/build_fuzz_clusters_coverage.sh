@@ -63,16 +63,16 @@ done
 # Create directories if required
 mkdir -p $CORPUS
 
-# Delete all previous 
-find $OUTPUT_ROOT -name "*.gcda" -type f -delete
-
 # Build fuzzing binary
 ./scripts/run_in_build_env.sh "./scripts/build/build_examples.py --target linux-x64-all-clusters-no-ble-asan-libfuzzer-coverage-clang build"
+
+# Delete all previous 
+find $OUTPUT_ROOT -name "*.gcda" -type f -delete
 
 # Run the fuzzing binary (with symbolizer)
 echo "Starting Fuzzing at $FUZZ_DATE"
 set +e
-ASAN_OPTIONS=external_symbolizer_path=/home/ubuntu/connectedhomeip/.environment/cipd/packages/pigweed/bin/llvm-symbolizer FUZZ_CAMPAIGN_MINUTES=$MINUTES ./out/linux-x64-all-clusters-no-ble-asan-libfuzzer-coverage-clang/chip-all-clusters-app-fuzzing $CORPUS $SEEDS 1> /dev/null
+ASAN_OPTIONS=external_symbolizer_path=/home/ubuntu/connectedhomeip/.environment/cipd/packages/pigweed/bin/llvm-symbolizer FUZZ_CAMPAIGN_MINUTES=$MINUTES sudo ./out/linux-x64-all-clusters-no-ble-asan-libfuzzer-coverage-clang/chip-all-clusters-app-fuzzing $CORPUS $SEEDS 1> /dev/null
 set -e
 echo "Corpus saved to $CORPUS"
 echo "Started Fuzzing at $FUZZ_DATE"
