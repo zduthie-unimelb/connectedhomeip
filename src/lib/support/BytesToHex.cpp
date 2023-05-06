@@ -21,6 +21,10 @@
 
 #include <cstring>
 #include <stdio.h>
+
+#include <fstream>
+#include <iostream>
+
 namespace chip {
 namespace Encoding {
 
@@ -231,6 +235,43 @@ void LogBufferAsHex(const char * label, const ByteSpan & span)
         remaining -= chunk_size;
     }
 }
+
+std::string GenRandomFileName(unsigned long len) {
+    static const char alphanum[] =
+        "0123456789"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz";
+    std::string tmp_s;
+    tmp_s.reserve(len);
+
+    for (unsigned long i = 0; i < len; ++i) {
+        tmp_s += alphanum[(unsigned long)rand() % (sizeof(alphanum) - 1)];
+    }
+    
+    return tmp_s;
+}
+
+void LogBufferToFile(const char * label, const ByteSpan & span)
+{
+    auto const data = span.data();
+    auto const dataLen = span.size();
+    LogBufferToFile(label, data, dataLen);
+}
+
+void LogBufferToFile(const char * label, const uint8_t * data, size_t dataLen)
+{
+    // *** WARNING! Folder must exist!!! ***
+
+    std::string folder = std::string("./dump_") + label + "/";
+    std::string filename = label + std::string("_") + GenRandomFileName(12) + ".bin";
+    std::string file = folder+filename;
+    ChipLogError(Support, "Logging buffer to %s", file.c_str());
+
+    auto out_stream = std::ofstream(folder+filename, std::ios::binary);
+    out_stream.write((char *)data, (long)dataLen);
+    out_stream.close();
+}
+
 
 } // namespace Encoding
 } // namespace chip

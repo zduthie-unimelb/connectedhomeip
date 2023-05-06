@@ -163,6 +163,9 @@ inline CHIP_ERROR BytesToLowercaseHexString(const uint8_t * src_bytes, size_t sr
  */
 void LogBufferAsHex(const char * label, const ByteSpan & span);
 
+void LogBufferToFile(const char * label, const ByteSpan & span);
+void LogBufferToFile(const char * label, const uint8_t * data, size_t dataLen);
+
 /**
  * Convert a buffer of hexadecimal characters to bytes. Supports both lowercase
  * and uppercase (or a mix of cases) hexadecimal characters. Supported input is
