@@ -47,7 +47,9 @@ namespace TLV {
 namespace Utilities {
 
 typedef CHIP_ERROR (*IterateHandler)(const TLVReader & aReader, size_t aDepth, void * aContext);
+typedef CHIP_ERROR (*IterateHandlerMutable)(TLVReader & aReader, size_t aDepth, void * aContext);
 
+extern CHIP_ERROR Iterate(TLVReader & aReader, IterateHandlerMutable aHandler, void * aContext);
 extern CHIP_ERROR Iterate(const TLVReader & aReader, IterateHandler aHandler, void * aContext);
 extern CHIP_ERROR Iterate(const TLVReader & aReader, IterateHandler aHandler, void * aContext, bool aRecurse);
 
