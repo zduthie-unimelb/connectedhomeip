@@ -4,6 +4,7 @@ import("//build_overrides/nlio.gni")
 import("//build_overrides/nlunit_test.gni")
 
 import("${chip_root}/build/chip/chip_test_suite.gni")
+import("${chip_root}/build/chip/fuzz_test.gni")
 
 chip_test_suite("tests") {
   output_name = "libSecureChannelTests"
@@ -34,4 +35,13 @@ chip_test_suite("tests") {
   ]
 
   cflags = [ "-Wconversion" ]
+}
+
+if (enable_fuzz_test_targets) {
+  chip_fuzz_target("fuzz-pase-session") {
+    sources = [ "FuzzPASESession.cpp" ]
+    public_deps = [
+      "${chip_root}/src/protocols",
+    ]
+  }
 }
