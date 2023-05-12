@@ -5,7 +5,7 @@
 
 set -e
 
-SUPPORTED_DRIVERS=(cert minmdns qr tlv)
+SUPPORTED_DRIVERS=(cert_chip cert_der minmdns qr tlv)
 build_matter=false
 
 CHIP_ROOT="/home/ubuntu/connectedhomeip"
@@ -16,11 +16,12 @@ DRIVER="tlv"
 SEEDS="$CHIP_ROOT/seeds"
 MINUTES=2
 DICT_ARG=""
-MAXLEN_ARG="-max_len=10240" # Hard-coded
+MAXLEN_ARG="" # Hard-coded
+# MAXLEN_ARG="-max_len=10240" # Hard-coded
 
 help() {
 
-    echo "Usage: [--build] [--driver=<cert|minmdns|qr|tlv>] [--corpus=<corpus_dir>] [--seeds=<seeds_dir>] [--dict=<dict_file>] [--minutes=<minutes>] "
+    echo "Usage: [--build] [--driver=<cert_chip|cert_der|minmdns|qr|tlv>] [--seeds=<seeds_dir>] [--dict=<dict_file>] [--minutes=<minutes>] "
     echo
     echo "Misc:
   -h, --help                Print this help, then exit."
@@ -75,8 +76,11 @@ done
 
 FUZZ_BINARY_NAME="fuzz-tlv-reader"
 case $DRIVER in
-    "cert")
+    "cert_chip")
         FUZZ_BINARY_NAME="fuzz-chip-cert"
+        ;;
+    "cert_der")
+        FUZZ_BINARY_NAME="fuzz-der-cert"
         ;;
     "minmdns")
         FUZZ_BINARY_NAME="fuzz-minmdns-packet-parsing"
