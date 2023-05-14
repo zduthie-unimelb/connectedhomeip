@@ -5,7 +5,7 @@
 
 set -e
 
-SUPPORTED_DRIVERS=(cert_chip cert_der minmdns qr tlv)
+SUPPORTED_DRIVERS=(cert_chip cert_der mdns qr tlv)
 build_matter=false
 
 CHIP_ROOT="/home/ubuntu/connectedhomeip"
@@ -21,14 +21,14 @@ MAXLEN_ARG="" # Hard-coded
 
 help() {
 
-    echo "Usage: [--build] [--driver=<cert_chip|cert_der|minmdns|qr|tlv>] [--seeds=<seeds_dir>] [--dict=<dict_file>] [--minutes=<minutes>] "
+    echo "Usage: [--build] [--driver=<cert_chip|cert_der|mdns|qr|tlv>] [--seeds=<seeds_dir>] [--dict=<dict_file>] [--minutes=<minutes>] "
     echo
     echo "Misc:
   -h, --help                Print this help, then exit."
     echo
     echo "Options:
   -b, --build               Whether to re-build the matter project.
-  -d, --driver              Specify the fuzz driver. One of cert, minmdns, qr or tlv.
+  -d, --driver              Specify the fuzz driver. One of cert_chip, cert_der, mdns, qr or tlv.
                             Defaults to 'tlv'.
   -s, --seeds               Specify the fuzzing seed directory.
                             Defaults to ./seeds
@@ -82,7 +82,7 @@ case $DRIVER in
     "cert_der")
         FUZZ_BINARY_NAME="fuzz-der-cert"
         ;;
-    "minmdns")
+    "mdns")
         FUZZ_BINARY_NAME="fuzz-minmdns-packet-parsing"
         ;;
     "qr")

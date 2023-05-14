@@ -5,7 +5,7 @@
 
 set -e
 
-SUPPORTED_DRIVERS=(cert_chip cert_der minmdns qr tlv)
+SUPPORTED_DRIVERS=(cert_chip cert_der mdns qr tlv)
 build_matter=false
 
 CHIP_ROOT="/home/ubuntu/connectedhomeip"
@@ -13,14 +13,14 @@ OUTPUT_ROOT="$CHIP_ROOT/out/clang"
 
 help() {
 
-    echo "Usage: --driver=<cert_chip|cert_der|minmdns|qr|tlv> --corpus=<corpus_dir> [--build]"
+    echo "Usage: --driver=<cert_chip|cert_der|mdns|qr|tlv> --corpus=<corpus_dir> [--build]"
     echo
     echo "Misc:
   -h, --help                Print this help, then exit."
     echo
     echo "Options:
   -b, --build               Whether to re-build the matter project.
-  -d, --driver              Specify the fuzz driver. One of cert, minmdns, qr or tlv.
+  -d, --driver              Specify the fuzz driver. One of cert_chip, cert_der, mdns, qr or tlv.
   -c, --corpus              Specify the fuzzing corpus directory.
   "
 }
@@ -60,7 +60,7 @@ case $DRIVER in
     "cert_der")
         FUZZ_BINARY_NAME="fuzz-der-cert"
         ;;
-    "minmdns")
+    "mdns")
         FUZZ_BINARY_NAME="fuzz-minmdns-packet-parsing"
         ;;
     "qr")
@@ -113,8 +113,8 @@ rm -rf "$OUTPUT_ROOT/obj/src/app/clusters"
 # Create and collect coverage
 set -x
 mkdir -p "$COVERAGE_ROOT"
-lcov --gcov-tool $CHIP_ROOT/cov_clang.sh --initial --capture --directory "$OUTPUT_ROOT/obj/src" --exclude="$PWD"/zzz_generated/* --exclude="$PWD"/third_party/* --exclude=/usr/include/* --output-file "$COVERAGE_ROOT/lcov_base.info" 1> /dev/null
-lcov --gcov-tool $CHIP_ROOT/cov_clang.sh --capture --directory "$OUTPUT_ROOT/obj/src" --exclude="$PWD"/zzz_generated/* --exclude="$PWD"/third_party/* --exclude=/usr/include/* --output-file "$COVERAGE_ROOT/lcov_test.info" 1> /dev/null
+lcov --gcov-tool $CHIP_ROOT/cov_clang.sh --initial --capture --directory "$OUTPUT_ROOT/obj/src" --exclude="$OUTPUT_ROOT/obj"/zzz_generated/* --exclude="$OUTPUT_ROOT/obj"/third_party/* --exclude=/usr/include/* --output-file "$COVERAGE_ROOT/lcov_base.info" 1> /dev/null
+lcov --gcov-tool $CHIP_ROOT/cov_clang.sh --capture --directory "$OUTPUT_ROOT/obj/src" --exclude="$OUTPUT_ROOT/obj"/zzz_generated/* --exclude="$OUTPUT_ROOT/obj"/third_party/* --exclude=/usr/include/* --output-file "$COVERAGE_ROOT/lcov_test.info" 1> /dev/null
 lcov --gcov-tool $CHIP_ROOT/cov_clang.sh --add-tracefile "$COVERAGE_ROOT/lcov_base.info" --add-tracefile "$COVERAGE_ROOT/lcov_test.info" --output-file "$COVERAGE_ROOT/lcov_final.info"
 genhtml "$COVERAGE_ROOT/lcov_final.info" --output-directory "$COVERAGE_ROOT/html" 1> /dev/null
 
