@@ -15,10 +15,13 @@ COVERAGE_ROOT="$OUTPUT_ROOT/$COVERAGE_NAME"
 CORPUS="$CHIP_ROOT/corpus_$CLUSTERS_DATE"
 SEEDS="$CHIP_ROOT/seeds_clusters"
 MINUTES=5
+DICT_ARG=""
+MAXLEN_ARG="" # Hard-coded
+# MAXLEN_ARG="-max_len=10240" # Hard-coded
 
 help() {
 
-    echo "Usage: [--corpus=<corpus_dir>] [--seeds=<seeds_dir>] [--minutes=<minutes>]"
+    echo "Usage: [--corpus=<corpus_dir>] [--seeds=<seeds_dir>] [--dict=<dict_file>] [--minutes=<minutes>]"
     echo
     echo "Misc:
   -h, --help                Print this help, then exit."
@@ -28,6 +31,8 @@ help() {
                             Defaults to corpus_clusters_yyyymmmdd_HHMMSS
   -s, --seeds               Specify the fuzzing seed directory.
                             Defaults to seeds_clusters
+  -i, --dict                Specify the fuzzing dictionary.
+                            Defaults to (none)
   -m, --minutes             Specify how long to run fuzzing.
                             Defaults to 5 minutes.
   "
@@ -45,6 +50,10 @@ for i in "$@"; do
             ;;
         -m=* | --minutes=*)
             MINUTES="${i#*=}"
+            shift
+            ;;
+        -i=* | --dict=*)
+            DICT_ARG="-dict=${i#*=}"
             shift
             ;;
         -s=* | --seeds=*)
@@ -72,7 +81,7 @@ find $OUTPUT_ROOT -name "*.gcda" -type f -delete
 # Run the fuzzing binary (with symbolizer)
 echo "Starting Fuzzing at $FUZZ_DATE"
 set +e
-sudo ASAN_OPTIONS=external_symbolizer_path=/home/ubuntu/connectedhomeip/.environment/cipd/packages/pigweed/bin/llvm-symbolizer FUZZ_CAMPAIGN_MINUTES=$MINUTES ./out/linux-x64-all-clusters-no-ble-asan-libfuzzer-coverage-clang/chip-all-clusters-app-fuzzing $CORPUS $SEEDS 1> /dev/null
+sudo ASAN_OPTIONS=external_symbolizer_path=/home/ubuntu/connectedhomeip/.environment/cipd/packages/pigweed/bin/llvm-symbolizer FUZZ_CAMPAIGN_MINUTES=$MINUTES ./out/linux-x64-all-clusters-no-ble-asan-libfuzzer-coverage-clang/chip-all-clusters-app-fuzzing $CORPUS $SEEDS $DICT_ARG $MAXLEN_ARG 1> /dev/null
 set -e
 echo "Corpus saved to $CORPUS"
 echo "Started Fuzzing at $FUZZ_DATE"
