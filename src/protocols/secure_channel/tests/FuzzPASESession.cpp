@@ -8,10 +8,10 @@
 #include <lib/core/CHIPSafeCasts.h>
 #include <lib/support/CHIPMem.h>
 #include <lib/support/CodeUtils.h>
-#include <lib/support/UnitTestContext.h>
-#include <lib/support/UnitTestRegistration.h>
-#include <lib/support/UnitTestUtils.h>
-#include <messaging/tests/MessagingContext.h>
+// #include <lib/support/UnitTestContext.h>
+// #include <lib/support/UnitTestRegistration.h>
+// #include <lib/support/UnitTestUtils.h>
+// #include <messaging/tests/MessagingContext.h>
 #include <protocols/secure_channel/PASESession.h>
 #include <stdarg.h>
 
