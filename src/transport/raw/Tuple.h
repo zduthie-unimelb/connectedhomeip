@@ -205,7 +205,13 @@ private:
     template <size_t N, typename std::enable_if<(N >= sizeof...(TransportTypes))>::type * = nullptr>
     CHIP_ERROR SendMessageImpl(const PeerAddress & address, System::PacketBufferHandle msgBuf)
     {
+
+#if CHIP_CONFIG_SECURITY_FUZZ_MODE
+        return CHIP_NO_ERROR;
+#else
         return CHIP_ERROR_NO_MESSAGE_HANDLER;
+#endif
+
     }
 
     /**
