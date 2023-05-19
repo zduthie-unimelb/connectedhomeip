@@ -573,6 +573,9 @@ CHIP_ERROR ExchangeContext::HandleMessage(uint32_t messageCounter, const Payload
         return CHIP_NO_ERROR;
     }
 
+#if CHIP_CONFIG_SECURITY_FUZZ_SEED_BUG_1
+    // Skip message ack check
+#else
     if (IsMessageNotAcked())
     {
         // The only way we can get here is a spec violation on the other side:
@@ -584,6 +587,7 @@ CHIP_ERROR ExchangeContext::HandleMessage(uint32_t messageCounter, const Payload
         ChipLogError(ExchangeManager, "Dropping message without piggyback ack when we are waiting for an ack.");
         return CHIP_ERROR_INCORRECT_STATE;
     }
+#endif
 
     // Since we got the response, cancel the response timer.
     CancelResponseTimer();
