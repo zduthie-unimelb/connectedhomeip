@@ -23,6 +23,10 @@
 #include <chrono>
 #include <iostream>
 
+#if CHIP_CONFIG_SECURITY_FUZZ_LOGGING
+#include <lib/support/BytesToHex.h>
+#endif
+
 extern "C" void __gcov_dump();
 
 using namespace chip;
@@ -45,6 +49,13 @@ void CleanShutdown()
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t * aData, size_t aSize)
 {
+
+#if CHIP_CONFIG_SECURITY_FUZZ_LOGGING
+    ChipLogProgress(Test, "<SIKE>fuzzing-main");
+    chip::Encoding::LogBufferAsHex("LLVMFuzzerTestOneInput", chip::ByteSpan(aData, aSize));
+#endif
+
+
     static auto fuzzCampaignStart = std::chrono::steady_clock::now();
     static auto fuzzCampaignMinutes = [](){
         char *envString = getenv("FUZZ_CAMPAIGN_MINUTES");
