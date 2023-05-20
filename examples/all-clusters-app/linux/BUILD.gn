@@ -78,6 +78,20 @@ if (is_libfuzzer) {
 
     output_dir = root_out_dir
   }
+  executable("chip-all-clusters-app-fuzzing-1") {
+    sources = [ "fuzzing-main-1.cpp" ]
+
+    deps = [
+      ":chip-all-clusters-common",
+      ":chip-lock-app-common",
+      "${chip_root}/examples/platform/linux:app-main",
+    ]
+
+    cflags = [ "-Wconversion" ]
+
+    output_dir = root_out_dir
+  }
+
 } else {
   executable("chip-all-clusters-app") {
     sources = [ "main.cpp" ]
@@ -118,6 +132,7 @@ group("linux") {
   deps = []
   if (is_libfuzzer) {
     deps += [ ":chip-all-clusters-app-fuzzing" ]
+    deps += [ ":chip-all-clusters-app-fuzzing-1" ]
   } else {
     deps += [ ":chip-all-clusters-app" ]
   }
