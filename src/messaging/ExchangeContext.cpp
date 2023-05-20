@@ -50,6 +50,10 @@
 #include <platform/CHIPDeviceLayer.h>
 #endif
 
+#if CHIP_CONFIG_SECURITY_FUZZ_SEED_BUG_1
+#include <iostream>
+#endif
+
 using namespace chip::Encoding;
 using namespace chip::Inet;
 using namespace chip::System;
@@ -573,9 +577,6 @@ CHIP_ERROR ExchangeContext::HandleMessage(uint32_t messageCounter, const Payload
         return CHIP_NO_ERROR;
     }
 
-#if CHIP_CONFIG_SECURITY_FUZZ_SEED_BUG_1
-    // Skip message ack check
-#else
     if (IsMessageNotAcked())
     {
         // The only way we can get here is a spec violation on the other side:
@@ -584,10 +585,15 @@ CHIP_ERROR ExchangeContext::HandleMessage(uint32_t messageCounter, const Payload
         // Just drop this message; if we delivered it to our delegate it might
         // try to send another message-needing-an-ack in response, which would
         // violate our internal invariants.
+        #if CHIP_CONFIG_SECURITY_FUZZ_SEED_BUG_1
+        // Skip message ack check
+        std::cerr << " *** SKIPPING CHECK FOR MESSAGE WITHOUT PIGGYBACK ACK WHEN WE ARE WAITING FOR AN ACK! SHOULD CRASH?!?!" << std::endl;
+        #else
         ChipLogError(ExchangeManager, "Dropping message without piggyback ack when we are waiting for an ack.");
         return CHIP_ERROR_INCORRECT_STATE;
+        #endif
+
     }
-#endif
 
     // Since we got the response, cancel the response timer.
     CancelResponseTimer();

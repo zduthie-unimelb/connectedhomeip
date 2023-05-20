@@ -47,6 +47,8 @@
 #include <trace/trace.h>
 #include <transport/SessionManager.h>
 
+#include <iostream>
+
 namespace chip {
 
 using namespace Crypto;
@@ -810,11 +812,43 @@ CHIP_ERROR PASESession::OnUnsolicitedMessageReceived(const PayloadHeader & paylo
     return CHIP_NO_ERROR;
 }
 
+#if CHIP_CONFIG_SECURITY_FUZZ_LOGGING
+inline const char* MsgTypeToString(MsgType msgType)
+{
+    switch (msgType)
+    {
+    case MsgType::PBKDFParamRequest:
+        return "PBKDFParamRequest";
+
+    case MsgType::PBKDFParamResponse:
+        return "PBKDFParamResponse";
+
+    case MsgType::PASE_Pake1:
+        return "PASE_Pake1";
+
+    case MsgType::PASE_Pake2:
+        return "PASE_Pake2";
+
+    case MsgType::PASE_Pake3:
+        return "PASE_Pake3";
+
+    case MsgType::StatusReport:
+        return "StatusReport";
+    }
+    return "Unhandled";
+}
+#endif
+
 CHIP_ERROR PASESession::OnMessageReceived(ExchangeContext * exchange, const PayloadHeader & payloadHeader,
                                           System::PacketBufferHandle && msg)
 {
     CHIP_ERROR err  = ValidateReceivedMessage(exchange, payloadHeader, msg);
     MsgType msgType = static_cast<MsgType>(payloadHeader.GetMessageType());
+
+#if CHIP_CONFIG_SECURITY_FUZZ_LOGGING
+    std::cerr << " *** msgType=" << MsgTypeToString(msgType) << " ***" << std::endl; 
+#endif
+
     SuccessOrExit(err);
 
 #if CHIP_CONFIG_SLOW_CRYPTO
