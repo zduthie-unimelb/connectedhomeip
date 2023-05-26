@@ -64,14 +64,32 @@ source_set("chip-lock-app-common") {
   cflags = [ "-Wconversion" ]
 }
 
+# "/home/ubuntu/libprotobuf-mutator/examples/libfuzzer/libfuzzer_example.pb.cc",
 if (is_libfuzzer) {
   executable("chip-all-clusters-app-fuzzing") {
-    sources = [ "fuzzing-main.cpp" ]
+    sources = [
+      "fuzzing-main.cpp",
+      "/home/ubuntu/connectedhomeip/integrations/libfuzzer/chip_message/chip_message.pb.cc",
+    ]
 
     deps = [
       ":chip-all-clusters-common",
       ":chip-lock-app-common",
       "${chip_root}/examples/platform/linux:app-main",
+    ]
+
+    libs = [
+      "/home/ubuntu/libprotobuf-mutator/build/src/libfuzzer/libprotobuf-mutator-libfuzzer.a",
+      "/home/ubuntu/libprotobuf-mutator/build/src/libprotobuf-mutator.a",
+      "/home/ubuntu/libprotobuf-mutator/build/external.protobuf/lib/libprotobuf-lite.a",
+      "/home/ubuntu/libprotobuf-mutator/build/external.protobuf/lib/libprotobuf.a",
+      "/home/ubuntu/libprotobuf-mutator/build/external.protobuf/lib/libprotoc.a",
+    ]
+
+    include_dirs = [
+      "/home/ubuntu/connectedhomeip/integrations/libfuzzer/chip_message/",
+      "/home/ubuntu/libprotobuf-mutator/",
+      "/home/ubuntu/libprotobuf-mutator/build/external.protobuf/include",
     ]
 
     cflags = [ "-Wconversion" ]
