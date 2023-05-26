@@ -17,6 +17,9 @@
 
 #include "AppMain.h"
 #include <app/server/Server.h>
+#include <transport/SessionManager.h>
+#include <transport/TransportMgr.h>
+#include <transport/raw/PeerAddress.h>
 
 #include <CommissionableInit.h>
 
@@ -170,6 +173,22 @@ static std::vector<uint8_t> PacketFromProtoMessage(const chip_message::ChipMessa
     return packet;
 }
 
+Transport::PeerAddress AddressFromString(const char * str)
+{
+    Inet::IPAddress addr;
+
+    VerifyOrDie(Inet::IPAddress::FromString(str, addr));
+
+    return Transport::PeerAddress::UDP(addr);
+}
+
+uint16_t kLocalSessionId = 1;
+uint16_t kPeerSessionId = 2;
+const NodeId kLocalNodeId = 123;
+const NodeId kPeerNodeId = 123;
+const FabricIndex kFabricIndex = 1;
+const Transport::PeerAddress kPeerAddress = AddressFromString("fe80::1");
+
 void CleanShutdown()
 {
     Server::GetInstance().Shutdown();
@@ -235,6 +254,11 @@ DEFINE_PROTO_FUZZER(const chip_message::ChipMessage& message) {
         // data on a separate thread.
 
         matterStackInitialized = true;
+
+        // And add a test session
+        SessionHolder testSessionHolder;
+        Server::GetInstance().GetSecureSessionManager().InjectCaseSessionWithTestKey(testSessionHolder, kLocalSessionId,
+            kPeerSessionId, kLocalNodeId, kPeerNodeId, kFabricIndex, kPeerAddress, CryptoContext::SessionRole::kResponder);
 
         // The fuzzer does not have a way to tell us when it's done, so just
         // shut down things on exit.
