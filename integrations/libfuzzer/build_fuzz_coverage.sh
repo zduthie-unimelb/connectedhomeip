@@ -81,15 +81,15 @@ CORPUS_NAME=$(basename $CORPUS)
 COVERAGE_NAME="coverage_$CORPUS_NAME"
 COVERAGE_ROOT="$OUTPUT_ROOT/$COVERAGE_NAME"
 
-# Delete all previous 
-find $OUTPUT_ROOT -name "*.gcda" -type f -delete
-
 # Build fuzzing binaries (with coverage)
 if [ "$build_matter" == true ]; then
     BUILD_TYPE="clang"
     ./scripts/build/gn_gen.sh --args="is_clang=true use_coverage=true"
     ./scripts/run_in_build_env.sh "ninja -C out/$BUILD_TYPE"
 fi
+
+# Delete all previous 
+find $OUTPUT_ROOT -name "*.gcda" -type f -delete
 
 # Run the corpus through the coverage enabled fuzzing binary (with symbolizer)
 ASAN_OPTIONS=external_symbolizer_path=/home/ubuntu/connectedhomeip/.environment/cipd/packages/pigweed/bin/llvm-symbolizer $FUZZ_BINARY_PATH $CORPUS -runs=0 1> /dev/null
